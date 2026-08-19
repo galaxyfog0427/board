@@ -1,7 +1,11 @@
 package com.example.board.post;
 
+import com.example.board.connection.ConnectionConst;
+import com.zaxxer.hikari.HikariDataSource;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 import java.sql.SQLException;
 import java.util.NoSuchElementException;
@@ -11,7 +15,17 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class PostRepositoryTest {
 
-    PostRepository repository = new PostRepository();
+    PostRepository repository;
+
+    @BeforeEach
+    void beforeEach() throws Exception {
+        HikariDataSource dataSource = new HikariDataSource();
+        dataSource.setJdbcUrl(ConnectionConst.URL);
+        dataSource.setUsername(ConnectionConst.USERNAME);
+        dataSource.setPassword(ConnectionConst.PASSWORD);
+
+        repository = new PostRepository(dataSource);
+    }
 
     @Test
     void crud() throws SQLException {

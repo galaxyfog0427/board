@@ -1,11 +1,16 @@
 package com.example.board.post;
 
-import com.example.board.connection.DBConnectionUtil;
-
+import javax.sql.DataSource;
 import java.sql.*;
 import java.util.NoSuchElementException;
 
 public class PostRepository {
+
+    private final DataSource dataSource;
+
+    public PostRepository(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
 
     public Long save(Post post) throws SQLException {
         String sql = "INSERT INTO post(title, content, created_at) VALUES (?, ?, NOW())";
@@ -15,7 +20,7 @@ public class PostRepository {
         ResultSet rs = null;
 
         try {
-            con = DBConnectionUtil.getConnection();
+            con = dataSource.getConnection();
             pstmt = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             pstmt.setString(1, post.getTitle());
             pstmt.setString(2, post.getContent());
@@ -46,7 +51,7 @@ public class PostRepository {
         ResultSet rs = null;
 
         try {
-            con = DBConnectionUtil.getConnection();
+            con = dataSource.getConnection();
             pstmt = con.prepareStatement(sql);
             pstmt.setLong(1, id);
             rs = pstmt.executeQuery();
@@ -84,7 +89,7 @@ public class PostRepository {
         PreparedStatement pstmt = null;
 
         try {
-            con = DBConnectionUtil.getConnection();
+            con = dataSource.getConnection();
             pstmt = con.prepareStatement(sql);
             pstmt.setString(1, title);
             pstmt.setString(2, content);
@@ -104,7 +109,7 @@ public class PostRepository {
         PreparedStatement pstmt = null;
 
         try {
-            con = DBConnectionUtil.getConnection();
+            con = dataSource.getConnection();
             pstmt = con.prepareStatement(sql);
             pstmt.setLong(1, id);
             pstmt.executeUpdate();

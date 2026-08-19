@@ -34,3 +34,6 @@ CREATE TABLE post (
 - 순수 JDBC로 게시글 CRUD 구현
 - 'AUTO_INCREMENT'로 생성된 게시글 ID 처리
 - CRUD 반복 테스트 완료
+- DataSource를 이용한 커넥션 획득 방식 추상화
+- DriverManagerDataSource 적용
+- HikariCP 커넥션 풀 적용
