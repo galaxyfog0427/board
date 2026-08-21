@@ -26,14 +26,21 @@ CREATE TABLE post (
 
 ## 학습 진행 상황
 
+### 구현
 - Spring Boot 프로젝트 초기 설정
 - MySQL 연결 및 'post' 테이블 생성
 - SQL CRUD 직접 실행
 - JDBC 기본 동작 원리 학습
-- 'Connection', 'PreparedStatement', 'ResultSet' 사용
+- `Connection`, `PreparedStatement`, `ResultSet` 사용
 - 순수 JDBC로 게시글 CRUD 구현
-- 'AUTO_INCREMENT'로 생성된 게시글 ID 처리
+- `AUTO_INCREMENT`로 생성된 게시글 ID 처리
 - CRUD 반복 테스트 완료
 - DataSource를 이용한 커넥션 획득 방식 추상화
 - DriverManagerDataSource 적용
 - HikariCP 커넥션 풀 적용
+
+### 데이터베이스 설계
+- 개념적/논리적 모델링 설계 완료 (Member/Post/Comment 엔티티, 관계, 참여도, 식별 여부 확정)
+
+## 설계 문서
+- 데이터베이스 논리적 모델링 설계 결정사항 [docs/design.md](./docs/design.md) 참고
