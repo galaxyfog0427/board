@@ -13,7 +13,7 @@ public class PostRepository {
     }
 
     public Long save(Post post) throws SQLException {
-        String sql = "INSERT INTO post(title, content, created_at) VALUES (?, ?, NOW())";
+        String sql = "INSERT INTO post(title, content) VALUES (?, ?)";
 
         Connection con = null;
         PreparedStatement pstmt = null;
@@ -41,9 +41,9 @@ public class PostRepository {
     public Post findById(Long id) throws SQLException {
 
         String sql = """
-                SELECT id, title, content, created_at, updated_at
+                SELECT post_id, title, content, created_at, updated_at
                 FROM post
-                WHERE id = ?
+                WHERE post_id = ?
                 """;
 
         Connection con = null;
@@ -58,12 +58,11 @@ public class PostRepository {
 
             if (rs.next()) {
                 Post post = new Post(
-                        rs.getLong("id"),
+                        rs.getLong("post_id"),
                         rs.getString("title"),
                         rs.getString("content"),
                         rs.getTimestamp("created_at").toLocalDateTime(),
-                        rs.getTimestamp("updated_at") != null ?
-                                rs.getTimestamp("updated_at").toLocalDateTime() : null);
+                        rs.getTimestamp("updated_at").toLocalDateTime());
 
                 return post;
             } else {
@@ -81,8 +80,8 @@ public class PostRepository {
 
         String sql = """
                 UPDATE post
-                SET title = ?, content = ?, updated_at = NOW()
-                WHERE id = ?;
+                SET title = ?, content = ?
+                WHERE post_id = ?;
                 """;
 
         Connection con = null;
@@ -103,7 +102,7 @@ public class PostRepository {
 
     public void delete(Long id) throws SQLException {
 
-        String sql = "DELETE FROM post WHERE id = ?";
+        String sql = "DELETE FROM post WHERE post_id = ?";
 
         Connection con = null;
         PreparedStatement pstmt = null;
