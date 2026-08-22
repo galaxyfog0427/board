@@ -5,6 +5,8 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 import java.sql.SQLException;
@@ -13,25 +15,18 @@ import java.util.NoSuchElementException;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+@SpringBootTest
 class PostRepositoryTest {
 
+    @Autowired
     PostRepository repository;
-
-    @BeforeEach
-    void beforeEach() throws Exception {
-        HikariDataSource dataSource = new HikariDataSource();
-        dataSource.setJdbcUrl(ConnectionConst.URL);
-        dataSource.setUsername(ConnectionConst.USERNAME);
-        dataSource.setPassword(ConnectionConst.PASSWORD);
-
-        repository = new PostRepository(dataSource);
-    }
 
     @Test
     void crud() throws SQLException {
         //create
         Post post = new Post(
                 null,
+                1L,
                 "JDBC 게시글",
                 "순수 JDBC로 저장",
                 null,

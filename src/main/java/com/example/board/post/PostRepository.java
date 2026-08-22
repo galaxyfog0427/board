@@ -1,9 +1,12 @@
 package com.example.board.post;
 
+import org.springframework.stereotype.Repository;
+
 import javax.sql.DataSource;
 import java.sql.*;
 import java.util.NoSuchElementException;
 
+@Repository
 public class PostRepository {
 
     private final DataSource dataSource;
@@ -13,7 +16,8 @@ public class PostRepository {
     }
 
     public Long save(Post post) throws SQLException {
-        String sql = "INSERT INTO post(title, content) VALUES (?, ?)";
+        String sql = "INSERT INTO post(member_id, title, content, created_at) " +
+                "VALUES (?, ?, ?, NOW())";
 
         Connection con = null;
         PreparedStatement pstmt = null;
@@ -22,8 +26,9 @@ public class PostRepository {
         try {
             con = dataSource.getConnection();
             pstmt = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            pstmt.setString(1, post.getTitle());
-            pstmt.setString(2, post.getContent());
+            pstmt.setLong(1, post.getMemberId());
+            pstmt.setString(2, post.getTitle());
+            pstmt.setString(3, post.getContent());
             pstmt.executeUpdate();
 
             rs = pstmt.getGeneratedKeys();
@@ -41,7 +46,7 @@ public class PostRepository {
     public Post findById(Long id) throws SQLException {
 
         String sql = """
-                SELECT post_id, title, content, created_at, updated_at
+                SELECT post_id, member_id, title, content, created_at, updated_at
                 FROM post
                 WHERE post_id = ?
                 """;
@@ -59,6 +64,7 @@ public class PostRepository {
             if (rs.next()) {
                 Post post = new Post(
                         rs.getLong("post_id"),
+                        rs.getLong("member_id"),
                         rs.getString("title"),
                         rs.getString("content"),
                         rs.getTimestamp("created_at").toLocalDateTime(),
