@@ -80,6 +80,8 @@ CREATE TABLE comment (
 ## 학습 진행 상황
 
 ### 구현
+
+#### JDBC 기초
 - Spring Boot 프로젝트 초기 설정
 - MySQL 연결 및 'post' 테이블 생성
 - SQL CRUD 직접 실행
@@ -91,10 +93,15 @@ CREATE TABLE comment (
 - DataSource를 이용한 커넥션 획득 방식 추상화
 - DriverManagerDataSource 적용
 - HikariCP 커넥션 풀 적용
+
+#### 트랜잭션
 - post 테이블에 member_id, comment_count 컬럼 추가 (역정규화)
 - member, comment 테이블 생성
 - Member, Comment 도메인 및 Repository 구현 (순수 JDBC)
 - Repository를 스프링 빈으로 전환, application.properties 기반 DataSource/TransactionManager 자동 등록 적용
+- 트랜잭션 개념 학습 (원자성, 커밋/롤백, 자동/수동 커밋)
+- 댓글 작성 + comment_count 증가 로직에 @Transactional 적용
+- 트랜잭션 롤백 테스트 작성 (의도적 예외 발생 . 전체 롤백되는 것을 검증)
 
 ### 데이터베이스 설계
 - 개념적/논리적 모델링 설계 완료 (Member/Post/Comment 엔티티, 관계, 참여도, 식별 여부 확정)

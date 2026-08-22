@@ -46,7 +46,7 @@ public class PostRepository {
     public Post findById(Long id) throws SQLException {
 
         String sql = """
-                SELECT post_id, member_id, title, content, created_at, updated_at
+                SELECT post_id, member_id, title, content, comment_count, created_at, updated_at
                 FROM post
                 WHERE post_id = ?
                 """;
@@ -67,6 +67,7 @@ public class PostRepository {
                         rs.getLong("member_id"),
                         rs.getString("title"),
                         rs.getString("content"),
+                        rs.getInt("comment_count"),
                         rs.getTimestamp("created_at").toLocalDateTime(),
                         rs.getTimestamp("updated_at").toLocalDateTime());
 
@@ -122,6 +123,22 @@ public class PostRepository {
             close(con, pstmt, null);
         }
 
+    }
+
+    public void incrementCommentCount(Long postId) throws SQLException {
+        String sql = "UPDATE post SET comment_count = comment_count + 1 WHERE post_id = ?";
+
+        Connection con = null;
+        PreparedStatement pstmt = null;
+
+        try {
+            con = dataSource.getConnection();
+            pstmt = con.prepareStatement(sql);
+            pstmt.setLong(1, postId);
+            pstmt.executeUpdate();
+        } finally {
+            close(con, pstmt, null);
+        }
     }
 
     private void close(Connection con, PreparedStatement pstmt, ResultSet rs) {

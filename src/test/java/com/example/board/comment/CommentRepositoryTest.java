@@ -45,6 +45,7 @@ class CommentRepositoryTest {
                 "제목",
                 "내용",
                 null,
+                null,
                 null
         );
         Long postId = postRepository.save(post);

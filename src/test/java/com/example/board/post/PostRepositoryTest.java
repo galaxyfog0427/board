@@ -30,6 +30,7 @@ class PostRepositoryTest {
                 "JDBC 게시글",
                 "순수 JDBC로 저장",
                 null,
+                null,
                 null
         );
         Long savedPostId = repository.save(post);

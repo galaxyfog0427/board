@@ -8,14 +8,16 @@ public class Post {
     private Long memberId;
     private String title;
     private String content;
+    private Integer commentCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public Post(Long id, Long memberId, String title, String content, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public Post(Long id, Long memberId, String title, String content, Integer commentCount, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.memberId = memberId;
         this.title = title;
         this.content = content;
+        this.commentCount = commentCount;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -36,6 +38,10 @@ public class Post {
         return content;
     }
 
+    public Integer getCommentCount() {
+        return commentCount;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -48,9 +54,10 @@ public class Post {
     public String toString() {
         return "Post{" +
                 "id=" + id +
-                ", member_id=" + memberId +
+                ", memberId=" + memberId +
                 ", title='" + title + '\'' +
                 ", content='" + content + '\'' +
+                ", commentCount=" + commentCount +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';
