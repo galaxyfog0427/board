@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
 import java.sql.*;
+import java.util.List;
 
 @Repository
 public class CommentRepository {
@@ -39,6 +40,17 @@ public class CommentRepository {
                 "FROM comment WHERE comment_id = ?";
 
         return template.queryForObject(sql, commentRowMapper(), commentId);
+    }
+
+    public List<Comment> findByPostId(Long postId) {
+        String sql = """
+                SELECT comment_id, post_id, member_id, content, created_at, updated_at
+                FROM comment
+                WHERE post_id = ?
+                ORDER BY created_at, comment_id
+                """;
+
+        return template.query(sql, commentRowMapper(), postId);
     }
 
     private RowMapper<Comment> commentRowMapper() {

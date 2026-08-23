@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
 import java.sql.*;
+import java.util.List;
 
 @Repository
 public class PostRepository {
@@ -41,6 +42,16 @@ public class PostRepository {
                 """;
 
         return template.queryForObject(sql, postRowMapper(), postId);
+    }
+
+    public List<Post> findAll() {
+        String sql = """
+                SELECT post_id, member_id, title, content, comment_count, created_at, updated_at
+                FROM post
+                ORDER BY created_at DESC, post_id DESC
+                """;
+
+        return template.query(sql, postRowMapper());
     }
 
     public void update(Long postId, String title, String content) {
