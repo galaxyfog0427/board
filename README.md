@@ -110,7 +110,7 @@ CREATE TABLE comment (
 - 조회 결과 없음 처리를 EmptyResultDataAccessException으로 통일 (직접 예외 클래스 제거)
 - 테스트를 @Transactional 기반 자동 롤백 방식으로 전환
 
-#### Spring MVC
+#### Spring MVC (진행중)
 - 서블릿 -> MVC 패턴 -> 프론트 컨트롤러 -> DispatcherServlet 구조 학습
 - 핸들러 매핑 / 핸들러 어댑터 / 뷰 리졸버로 이어지는 요청 처리 흐름 이해
 - `@RequestMapping`. `@RequestParam`, `@ModelAttribute` 등 요청 매핑 / 파라미터 바인딩 학습
@@ -119,6 +119,9 @@ CREATE TABLE comment (
 - Thymeleaf 기반 게시글 목록/상세/등록/수정(CRUD) 페이지 - 구현
 - 폼 전송 객체(`PostForm`)를 도메인 객체(`Post`)와 분리 - Mass Assignment 방지 및 도메인 불변성 유지
 - PRG 패턴 적용 및 `RedirectAttributes`로 새로고침 중복 등록 문제 해결
+- 타임리프 유틸리티 객체(`#temporals`)로 날짜 포맷팅, `th:if`/`th:unless`로 빈 목록 처리
+- 등록/수정 폼을 `th:object`, `th:field` 기반으로 개선 (id/name/value 자동 처리, 수정 폼에서 작성자 필드 제거)
+
 
 ### 데이터베이스 설계
 - 개념적/논리적 모델링 설계 완료 (Member/Post/Comment 엔티티, 관계, 참여도, 식별 여부 확정)

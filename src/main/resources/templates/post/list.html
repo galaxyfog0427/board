@@ -7,7 +7,7 @@
 <body>
 <div>
     <h2>게시글 목록</h2>
-    <table>
+    <table th:if="${!posts.isEmpty()}">
         <thead>
         <tr>
             <th>번호</th>
@@ -23,10 +23,11 @@
                 <a th:href="@{/posts/{postId}(postId=${post.id})}" th:text="${post.title}"></a>
             </td>
             <td th:text="${post.commentCount}"></td>
-            <td th:text="${post.createdAt}"></td>
+            <td th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
         </tr>
         </tbody>
     </table>
+    <p th:if="${posts.isEmpty()}">등록된 게시글이 없습니다.</p>
     <a th:href="@{/posts/add}">게시글 작성</a>
 </div>
 </body>

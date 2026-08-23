@@ -7,14 +7,14 @@
 <body>
 <div>
     <h2>게시글 수정</h2>
-    <form th:action="@{/posts/{postId}/edit(postId=${postId})}" method="post">
+    <form th:action="@{/posts/{postId}/edit(postId=${postId})}" th:object="${postForm}" method="post">
         <div>
             <label for="title">제목</label>
-            <input type="text" id="title" name="title" th:value="${postForm.title}">
+            <input type="text" id="title" th:field="*{title}">
         </div>
         <div>
             <label for="content">내용</label>
-            <textarea id="content" name="content" th:text="${postForm.content}"></textarea>
+            <textarea id="content" th:field="*{content}"></textarea>
         </div>
         <button type="submit">저장</button>
     </form>
