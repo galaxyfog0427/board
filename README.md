@@ -116,6 +116,9 @@ CREATE TABLE comment (
 - `@RequestMapping`. `@RequestParam`, `@ModelAttribute` 등 요청 매핑 / 파라미터 바인딩 학습
 - `PostRepository.findAll()`, `CommentRepository.findByPostId()` 추가 (게시글 목록 / 댓글 목록 조회 준비)
 - 동시간대 생성 데이터의 정렬 안정성을 위한 타이브레이커(`post_id`, `comment_id`) 적용 및 검증 테스트 작성
+- Thymeleaf 기반 게시글 목록/상세/등록/수정(CRUD) 페이지 - 구현
+- 폼 전송 객체(`PostForm`)를 도메인 객체(`Post`)와 분리 - Mass Assignment 방지 및 도메인 불변성 유지
+- PRG 패턴 적용 및 `RedirectAttributes`로 새로고침 중복 등록 문제 해결
 
 ### 데이터베이스 설계
 - 개념적/논리적 모델링 설계 완료 (Member/Post/Comment 엔티티, 관계, 참여도, 식별 여부 확정)
