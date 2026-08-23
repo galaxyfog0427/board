@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>게시글 등록</title>
+</head>
+<body>
+<div>
+    <h2>게시글 등록</h2>
+    <form th:action="@{/posts/add}" method="post">
+        <div>
+            <label for="memberId">작성자 회원 ID (임시 입력, 로그인 구현 후 제거 예정)</label>
+            <input type="text" id="memberId" name="memberId"/>
+        </div>
+        <div>
+            <label for="title">제목</label>
+            <input type="text" id="title" name="title">
+        </div>
+        <div>
+            <label for="content">내용</label>
+            <input type="text" id="content" name="content"/>
+        </div>
+        <button type="submit">저장</button>
+    </form>
+</div>
+</body>
+</html>

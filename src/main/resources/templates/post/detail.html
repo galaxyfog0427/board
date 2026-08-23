@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>게시글 상세</title>
+</head>
+<body>
+<div>
+    <h2 th:text="${post.title}"></h2>
+    <p th:text="${post.content}"></p>
+    <p>작성일: <span th:text="${post.createdAt}"></span></p>
+
+    <a th:href="@{/posts/{postId}/edit(postId=${post.id})}">수정</a>
+    <a th:href="@{/posts}">목록으로</a>
+
+    <h3>댓글</h3>
+    <ul>
+        <li th:each="comment : ${comments}" th:text="${comment.content}"></li>
+    </ul>
+</div>
+</body>
+</html>

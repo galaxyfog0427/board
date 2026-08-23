@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>게시글 목록</title>
+</head>
+<body>
+<div>
+    <h2>게시글 목록</h2>
+    <table>
+        <thead>
+        <tr>
+            <th>번호</th>
+            <th>제목</th>
+            <th>댓글 수</th>
+            <th>작성일</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="post : ${posts}">
+            <td th:text="${post.id}"></td>
+            <td>
+                <a th:href="@{/posts/{postId}(postId=${post.id})}" th:text="${post.title}"></a>
+            </td>
+            <td th:text="${post.commentCount}"></td>
+            <td th:text="${post.createdAt}"></td>
+        </tr>
+        </tbody>
+    </table>
+    <a th:href="@{/posts/add}">게시글 작성</a>
+</div>
+</body>
+</html>
