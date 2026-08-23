@@ -6,17 +6,17 @@
 </head>
 <body>
 <div>
-    <h2>게시글 수정</h2>
+    <h2 th:text="#{page.edit}">게시글 수정</h2>
     <form th:action="@{/posts/{postId}/edit(postId=${postId})}" th:object="${postForm}" method="post">
         <div>
-            <label for="title">제목</label>
+            <label for="title" th:text="#{post.title}">제목</label>
             <input type="text" id="title" th:field="*{title}">
         </div>
         <div>
-            <label for="content">내용</label>
+            <label for="content" th:text="#{post.content}">내용</label>
             <textarea id="content" th:field="*{content}"></textarea>
         </div>
-        <button type="submit">저장</button>
+        <button type="submit" th:text="#{button.save}">저장</button>
     </form>
 </div>
 </body>

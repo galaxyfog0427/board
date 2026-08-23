@@ -6,14 +6,14 @@
 </head>
 <body>
 <div>
-    <h2>게시글 목록</h2>
+    <h2 th:text="#{page.list}">게시글 목록</h2>
     <table th:if="${!posts.isEmpty()}">
         <thead>
         <tr>
-            <th>번호</th>
-            <th>제목</th>
-            <th>댓글 수</th>
-            <th>작성일</th>
+            <th th:text="#{label.number}">번호</th>
+            <th th:text="#{post.title}">제목</th>
+            <th th:text="#{post.commentCount}">댓글 수</th>
+            <th th:text="#{post.createdAt}">작성일</th>
         </tr>
         </thead>
         <tbody>
@@ -27,8 +27,8 @@
         </tr>
         </tbody>
     </table>
-    <p th:if="${posts.isEmpty()}">등록된 게시글이 없습니다.</p>
-    <a th:href="@{/posts/add}">게시글 작성</a>
+    <p th:if="${posts.isEmpty()}" th:text="#{label.empty}">등록된 게시글이 없습니다.</p>
+    <a th:href="@{/posts/add}" th:text="#{button.add}">게시글 작성</a>
 </div>
 </body>
 </html>
