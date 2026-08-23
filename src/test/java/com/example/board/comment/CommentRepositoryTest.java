@@ -4,17 +4,15 @@ import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
 import com.example.board.post.Post;
 import com.example.board.post.PostRepository;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-
-import java.sql.SQLException;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
+@Transactional
 class CommentRepositoryTest {
 
     @Autowired
@@ -27,7 +25,7 @@ class CommentRepositoryTest {
     CommentRepository commentRepository;
 
     @Test
-    void crud() throws SQLException {
+    void crud() {
         Member member = new Member(
                 null,
                 "commenter",

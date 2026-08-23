@@ -1,23 +1,21 @@
 package com.example.board.member;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-
-import java.sql.SQLException;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
+@Transactional
 class MemberRepositoryTest {
 
     @Autowired
     MemberRepository repository;
 
     @Test
-    void crud() throws SQLException {
+    void crud() {
         //create
         Member member = new Member(
                 null,

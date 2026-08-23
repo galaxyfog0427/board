@@ -1,170 +1,78 @@
 package com.example.board.post;
 
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
 import java.sql.*;
-import java.util.NoSuchElementException;
 
 @Repository
 public class PostRepository {
 
-    private final DataSource dataSource;
+    private final JdbcTemplate template;
 
     public PostRepository(DataSource dataSource) {
-        this.dataSource = dataSource;
+        this.template = new JdbcTemplate(dataSource);
     }
 
-    public Long save(Post post) throws SQLException {
-        String sql = "INSERT INTO post(member_id, title, content, created_at) " +
-                "VALUES (?, ?, ?, NOW())";
+    public Long save(Post post) {
+        String sql = "INSERT INTO post(member_id, title, content) VALUES (?, ?, ?)";
+        KeyHolder keyHolder = new GeneratedKeyHolder();
 
-        Connection con = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-
-        try {
-            con = dataSource.getConnection();
-            pstmt = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+        template.update(connection -> {
+            PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             pstmt.setLong(1, post.getMemberId());
             pstmt.setString(2, post.getTitle());
             pstmt.setString(3, post.getContent());
-            pstmt.executeUpdate();
+            return pstmt;
+        }, keyHolder);
 
-            rs = pstmt.getGeneratedKeys();
-
-            if (rs.next()) {
-                return rs.getLong(1);
-            }
-
-            throw new SQLException("id generation failed");
-        } finally {
-            close(con, pstmt, null);
-        }
+        return keyHolder.getKey().longValue();
     }
 
-    public Post findById(Long id) throws SQLException {
-
+    public Post findById(Long postId) {
         String sql = """
                 SELECT post_id, member_id, title, content, comment_count, created_at, updated_at
                 FROM post
                 WHERE post_id = ?
                 """;
 
-        Connection con = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-
-        try {
-            con = dataSource.getConnection();
-            pstmt = con.prepareStatement(sql);
-            pstmt.setLong(1, id);
-            rs = pstmt.executeQuery();
-
-            if (rs.next()) {
-                Post post = new Post(
-                        rs.getLong("post_id"),
-                        rs.getLong("member_id"),
-                        rs.getString("title"),
-                        rs.getString("content"),
-                        rs.getInt("comment_count"),
-                        rs.getTimestamp("created_at").toLocalDateTime(),
-                        rs.getTimestamp("updated_at").toLocalDateTime());
-
-                return post;
-            } else {
-                throw new NoSuchElementException("post not found postId = " + id);
-            }
-        } catch (SQLException e) {
-            System.out.println("db error");
-            throw e;
-        } finally {
-            close(con, pstmt, rs);
-        }
+        return template.queryForObject(sql, postRowMapper(), postId);
     }
 
-    public void update(Long id, String title, String content) throws SQLException {
-
+    public void update(Long postId, String title, String content) {
         String sql = """
                 UPDATE post
                 SET title = ?, content = ?
                 WHERE post_id = ?;
                 """;
 
-        Connection con = null;
-        PreparedStatement pstmt = null;
-
-        try {
-            con = dataSource.getConnection();
-            pstmt = con.prepareStatement(sql);
-            pstmt.setString(1, title);
-            pstmt.setString(2, content);
-            pstmt.setLong(3, id);
-            pstmt.executeUpdate();
-        } finally {
-            close(con, pstmt, null);
-        }
-
+        template.update(sql, title, content, postId);
     }
 
-    public void delete(Long id) throws SQLException {
-
+    public void delete(Long postId) {
         String sql = "DELETE FROM post WHERE post_id = ?";
-
-        Connection con = null;
-        PreparedStatement pstmt = null;
-
-        try {
-            con = dataSource.getConnection();
-            pstmt = con.prepareStatement(sql);
-            pstmt.setLong(1, id);
-            pstmt.executeUpdate();
-        } finally {
-            close(con, pstmt, null);
-        }
-
+        template.update(sql, postId);
     }
 
-    public void incrementCommentCount(Long postId) throws SQLException {
+    public void incrementCommentCount(Long postId) {
         String sql = "UPDATE post SET comment_count = comment_count + 1 WHERE post_id = ?";
-
-        Connection con = null;
-        PreparedStatement pstmt = null;
-
-        try {
-            con = dataSource.getConnection();
-            pstmt = con.prepareStatement(sql);
-            pstmt.setLong(1, postId);
-            pstmt.executeUpdate();
-        } finally {
-            close(con, pstmt, null);
-        }
+        template.update(sql, postId);
     }
 
-    private void close(Connection con, PreparedStatement pstmt, ResultSet rs) {
-        if (rs != null) {
-            try {
-                rs.close();
-            } catch (SQLException e) {
-                System.out.println("ResultSet close error: " + e.getMessage());
-            }
-        }
-
-        if (pstmt != null) {
-            try {
-                pstmt.close();
-            } catch (SQLException e) {
-                System.out.println("PreparedStatement close error: " + e.getMessage());
-            }
-        }
-
-        if (con != null) {
-            try {
-                con.close();
-            } catch (SQLException e) {
-                System.out.println("Connection close error: " + e.getMessage());
-            }
-        }
+    private RowMapper<Post> postRowMapper() {
+        return (rs, rowNum) -> new Post(
+                rs.getLong("post_id"),
+                rs.getLong("member_id"),
+                rs.getString("title"),
+                rs.getString("content"),
+                rs.getInt("comment_count"),
+                rs.getTimestamp("created_at").toLocalDateTime(),
+                rs.getTimestamp("updated_at").toLocalDateTime()
+        );
     }
 
 }

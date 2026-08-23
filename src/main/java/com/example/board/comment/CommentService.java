@@ -4,8 +4,6 @@ import com.example.board.post.PostRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.SQLException;
-
 @Service
 public class CommentService {
 
@@ -18,7 +16,7 @@ public class CommentService {
     }
 
     @Transactional
-    public Long addComment(Comment comment) throws SQLException {
+    public Long addComment(Comment comment) {
         Long commentId = commentRepository.save(comment);
         validateForRollbackTest(comment);
         postRepository.incrementCommentCount(comment.getPostId());

@@ -103,6 +103,13 @@ CREATE TABLE comment (
 - 댓글 작성 + comment_count 증가 로직에 @Transactional 적용
 - 트랜잭션 롤백 테스트 작성 (의도적 예외 발생 . 전체 롤백되는 것을 검증)
 
+#### 예외 처리
+- 체크 예외 vs 언체크 예외 차이 학습
+- Post/Member/Comment Repository를 JdbcTemplate으로 전환
+- SQLException 누수 문제 해결 (JdbcTemplate이 DataAccessException으로 자동 변환)
+- 조회 결과 없음 처리를 EmptyResultDataAccessException으로 통일 (직접 예외 클래스 제거)
+- 테스트를 @Transactional 기반 자동 롤백 방식으로 전환
+
 ### 데이터베이스 설계
 - 개념적/논리적 모델링 설계 완료 (Member/Post/Comment 엔티티, 관계, 참여도, 식별 여부 확정)
 - 물리적 모델링 완료 (데이터 타입, 제약조건, 역정규화 확정)
