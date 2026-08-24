@@ -122,7 +122,8 @@ CREATE TABLE comment (
 - 타임리프 유틸리티 객체(`#temporals`)로 날짜 포맷팅, `th:if`/`th:unless`로 빈 목록 처리
 - 등록/수정 폼을 `th:object`, `th:field` 기반으로 개선 (id/name/value 자동 처리, 수정 폼에서 작성자 필드 제거)
 - 화면 문구를 `messages.properties`로 외부화 (다국어는 실제 요구사항이 아니라 스킵, 메시지 외부화만 적용)
-- (예정) validation
+- Bean Validation 적용, 폼 객체를 등록용(`PostSaveForm')/수정용(`PostEditForm`)으로 분리하여 검증 중복 방지
+- (예정) 로그인 처리(쿠키/세션) 적용
 
 
 ### 데이터베이스 설계

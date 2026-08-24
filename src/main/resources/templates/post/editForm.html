@@ -3,18 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <title>게시글 수정</title>
+    <style>
+        .error-message {
+            color: red;
+        }
+        .field-error {
+            border: 1px solid red;
+        }
+    </style>
 </head>
 <body>
 <div>
     <h2 th:text="#{page.edit}">게시글 수정</h2>
-    <form th:action="@{/posts/{postId}/edit(postId=${postId})}" th:object="${postForm}" method="post">
+    <form th:action="@{/posts/{postId}/edit(postId=${postId})}" th:object="${postEditForm}" method="post">
         <div>
             <label for="title" th:text="#{post.title}">제목</label>
-            <input type="text" id="title" th:field="*{title}">
+            <input type="text" id="title" th:field="*{title}" th:errorclass="field-error">
+            <div class="error-message" th:errors="*{title}"></div>
         </div>
         <div>
             <label for="content" th:text="#{post.content}">내용</label>
-            <textarea id="content" th:field="*{content}"></textarea>
+            <textarea id="content" th:field="*{content}" th:errorclass="field-error"></textarea>
+            <div class="error-message" th:errors="*{content}"></div>
         </div>
         <button type="submit" th:text="#{button.save}">저장</button>
     </form>

@@ -4,6 +4,8 @@ import com.example.board.comment.Comment;
 import com.example.board.comment.CommentRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -39,17 +41,22 @@ public class PostController {
 
     @GetMapping("/add")
     public String addForm(Model model) {
-        model.addAttribute("postForm", new PostForm());
+        model.addAttribute("postSaveForm", new PostSaveForm());
         return "post/addForm";
     }
 
     @PostMapping("/add")
-    public String save(@ModelAttribute PostForm postForm, RedirectAttributes redirectAttributes) {
+    public String save(@Validated @ModelAttribute PostSaveForm postSaveForm, BindingResult bindingResult, RedirectAttributes redirectAttributes) {
+
+        if (bindingResult.hasErrors()) {
+            return "post/addForm";
+        }
+
         Post post = new Post(
                 null,
-                postForm.getMemberId(),
-                postForm.getTitle(),
-                postForm.getContent(),
+                postSaveForm.getMemberId(),
+                postSaveForm.getTitle(),
+                postSaveForm.getContent(),
                 null,
                 null,
                 null);
@@ -63,19 +70,23 @@ public class PostController {
     public String editForm(@PathVariable("postId") Long postId, Model model) {
         Post post = postRepository.findById(postId);
 
-        PostForm postForm = new PostForm();
-        postForm.setMemberId(post.getMemberId());
-        postForm.setTitle(post.getTitle());
-        postForm.setContent(post.getContent());
+        PostEditForm postEditForm = new PostEditForm();
+        postEditForm.setTitle(post.getTitle());
+        postEditForm.setContent(post.getContent());
 
-        model.addAttribute("postForm", postForm);
+        model.addAttribute("postEditForm", postEditForm);
         model.addAttribute("postId", postId);
         return "post/editForm";
     }
 
     @PostMapping("/{postId}/edit")
-    public String edit(@PathVariable("postId") Long postId, @ModelAttribute PostForm postForm) {
-        postRepository.update(postId, postForm.getTitle(), postForm.getContent());
+    public String edit(@PathVariable("postId") Long postId, @Validated @ModelAttribute PostEditForm postEditForm, BindingResult bindingResult) {
+
+        if (bindingResult.hasErrors()) {
+            return "post/editForm";
+        }
+
+        postRepository.update(postId, postEditForm.getTitle(), postEditForm.getContent());
         return "redirect:/posts/{postId}";
     }
 }
