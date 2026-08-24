@@ -31,14 +31,10 @@ public class PostController {
     }
 
     @GetMapping
-    public String list(HttpServletRequest request, Model model) {
+    public String list(@SessionAttribute(name = SessionConst.LOGIN_MEMBER, required = false) Member loginMember, Model model) {
         List<Post> posts = postRepository.findAll();
         model.addAttribute("posts", posts);
-
-        HttpSession session = request.getSession(false);
-        Member loginMember = session != null ? (Member) session.getAttribute(SessionConst.LOGIN_MEMBER) : null;
         model.addAttribute("loginMember", loginMember);
-
         return "post/list";
     }
 
@@ -54,25 +50,14 @@ public class PostController {
     }
 
     @GetMapping("/add")
-    public String addForm(HttpServletRequest request, Model model) {
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute(SessionConst.LOGIN_MEMBER) == null) {
-            return "redirect:/login";
-        }
-
+    public String addForm(Model model) {
         model.addAttribute("postSaveForm", new PostSaveForm());
         return "post/addForm";
     }
 
     @PostMapping("/add")
     public String save(@Validated @ModelAttribute PostSaveForm postSaveForm, BindingResult bindingResult,
-                       HttpServletRequest request, RedirectAttributes redirectAttributes) {
-
-        HttpSession session = request.getSession(false);
-        Member loginMember = session != null ? (Member) session.getAttribute(SessionConst.LOGIN_MEMBER) : null;
-        if (loginMember == null) {
-            return "redirect:/login";
-        }
+                       @SessionAttribute(SessionConst.LOGIN_MEMBER) Member loginMember, RedirectAttributes redirectAttributes) {
 
         if (bindingResult.hasErrors()) {
             return "post/addForm";
@@ -93,8 +78,14 @@ public class PostController {
     }
 
     @GetMapping("/{postId}/edit")
-    public String editForm(@PathVariable("postId") Long postId, Model model) {
+    public String editForm(@PathVariable("postId") Long postId,
+                           @SessionAttribute(SessionConst.LOGIN_MEMBER) Member loginMember,
+                           Model model) {
         Post post = postRepository.findById(postId);
+
+        if (!loginMember.getId().equals(post.getMemberId())) {
+            throw new IllegalStateException("본인이 작성한 게시글만 수정할 수 있습니다.");
+        }
 
         PostEditForm postEditForm = new PostEditForm();
         postEditForm.setTitle(post.getTitle());
@@ -106,9 +97,20 @@ public class PostController {
     }
 
     @PostMapping("/{postId}/edit")
-    public String edit(@PathVariable("postId") Long postId, @Validated @ModelAttribute PostEditForm postEditForm, BindingResult bindingResult) {
+    public String edit(@PathVariable("postId") Long postId,
+                       @Validated @ModelAttribute PostEditForm postEditForm,
+                       BindingResult bindingResult,
+                       @SessionAttribute(SessionConst.LOGIN_MEMBER) Member loginMember,
+                       Model model) {
+
+        Post post = postRepository.findById(postId);
+
+        if (!loginMember.getId().equals(post.getMemberId())) {
+            throw new IllegalStateException("본인이 작성한 게시글만 수정할 수 있습니다.");
+        }
 
         if (bindingResult.hasErrors()) {
+            model.addAttribute("postId", postId);
             return "post/editForm";
         }
 

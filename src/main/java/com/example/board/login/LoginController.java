@@ -7,10 +7,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 public class LoginController {
@@ -28,7 +25,10 @@ public class LoginController {
     }
 
     @PostMapping("/login")
-    public String loginForm(@Validated @ModelAttribute LoginForm loginForm, BindingResult bindingResult, HttpServletRequest request, Model model) {
+    public String loginForm(@Validated @ModelAttribute LoginForm loginForm,
+                            BindingResult bindingResult,
+                            @RequestParam(defaultValue = "/posts") String redirectURL,
+                            HttpServletRequest request) {
 
         if (bindingResult.hasErrors()) {
             return "login/loginForm";
@@ -44,7 +44,7 @@ public class LoginController {
         HttpSession session = request.getSession();
         session.setAttribute(SessionConst.LOGIN_MEMBER, loginMember);
 
-        return "redirect:/posts";
+        return "redirect:" + redirectURL;
     }
 
     @PostMapping("/logout")
