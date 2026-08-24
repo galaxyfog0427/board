@@ -17,11 +17,6 @@
     <h2 th:text="#{page.add}">게시글 등록</h2>
     <form th:action="@{/posts/add}" th:object="${postSaveForm}" method="post">
         <div>
-            <label for="memberId" th:text="#{post.memberId}">작성자 회원 ID (임시 입력, 로그인 구현 후 제거 예정)</label>
-            <input type="text" id="memberId" th:field="*{memberId}" th:errorclass="field-error"/>
-            <div class="error-message" th:errors="*{memberId}"></div>
-        </div>
-        <div>
             <label for="title" th:text="#{post.title}">제목</label>
             <input type="text" id="title" th:field="*{title}" th:errorclass="field-error">
             <div class="error-message" th:errors="*{title}"></div>

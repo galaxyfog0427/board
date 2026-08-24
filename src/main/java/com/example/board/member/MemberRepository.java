@@ -1,5 +1,6 @@
 package com.example.board.member;
 
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -41,7 +42,30 @@ public class MemberRepository {
         return template.queryForObject(sql, memberRowMapper(), memberId);
     }
 
+    public boolean existsByLoginId(String loginId) {
+        String sql = """
+                SELECT COUNT(*)
+                FROM member
+                WHERE login_id = ?
+                """;
 
+        Integer count = template.queryForObject(sql, Integer.class, loginId);
+        return count != null && count > 0;
+    }
+
+    public Member findByLoginId(String loginId) {
+        String sql = """
+                SELECT member_id, login_id, password, nickname, status, withdrawn_at, created_at, updated_at
+                FROM member
+                WHERE login_id = ?
+                """;
+
+        try {
+            return template.queryForObject(sql, memberRowMapper(), loginId);
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
 
     private RowMapper<Member> memberRowMapper() {
         return (rs, rowNum) -> new Member(

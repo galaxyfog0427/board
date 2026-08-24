@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>회원가입</title>
+    <style>
+        .error-message {
+            color: red;
+        }
+        .field-error {
+            border: 1px solid red;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <h2 th:text="#{page.join}"></h2>
+    <form th:action="@{/members/add}" th:object="${memberJoinForm}" method="post">
+        <div>
+            <label for="loginId" th:text="#{member.loginId}"></label>
+            <input type="text" id="loginId" th:field="*{loginId}" th:errorclass="field-error">
+            <div class="error-message" th:errors="*{loginId}"></div>
+        </div>
+        <div>
+            <label for="password" th:text="#{member.password}"></label>
+            <input type="password" id="password" th:field="*{password}" th:errorclass="field-error">
+            <div class="error-message" th:errors="*{password}"></div>
+        </div>
+        <div>
+            <label for="nickname" th:text="#{member.nickname}"></label>
+            <input type="text" id="nickname" th:field="*{nickname}" th:errorclass="field-error">
+            <div class="error-message" th:errors="*{nickname}"></div>
+        </div>
+        <button type="submit" th:text="#{button.join}"></button>
+    </form>
+</div>
+</body>
+</html>

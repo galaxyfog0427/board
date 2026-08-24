@@ -7,6 +7,14 @@
 <body>
 <div>
     <h2 th:text="#{page.list}">게시글 목록</h2>
+    <div>
+        <span th:if="${loginMember != null}" th:text="${loginMember.nickname} + '님 환영합니다'"></span>
+        <a th:if="${loginMember == null}" th:href="@{/members/add}" th:text="#{page.join}"></a> |
+        <a th:if="${loginMember == null}" th:href="@{/login}" th:text="#{page.login}"></a> |
+        <form th:if="${loginMember != null}" th:action="@{/logout}" method="post" style="display:inline">
+            <button type="submit" th:text="#{button.logout}"></button>
+        </form>
+    </div>
     <table th:if="${!posts.isEmpty()}">
         <thead>
         <tr>

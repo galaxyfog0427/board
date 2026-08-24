@@ -123,7 +123,9 @@ CREATE TABLE comment (
 - 등록/수정 폼을 `th:object`, `th:field` 기반으로 개선 (id/name/value 자동 처리, 수정 폼에서 작성자 필드 제거)
 - 화면 문구를 `messages.properties`로 외부화 (다국어는 실제 요구사항이 아니라 스킵, 메시지 외부화만 적용)
 - Bean Validation 적용, 폼 객체를 등록용(`PostSaveForm')/수정용(`PostEditForm`)으로 분리하여 검증 중복 방지
-- (예정) 로그인 처리(쿠키/세션) 적용
+- 회원가입(`MemberController`, 로그인 ID 중복 확인용 `Validator` + `@InitBinder`) 및 로그인/로그아웃(`HttpSession` 기반) 구현
+- 게시글 작성 시 작성자를 폼 직접 입력 대신 세션의 로그인 회원 정보로 자동 처리
+- (예정) 필터/인터셉터로 로그인 인증 및 인가 공통 처리
 
 
 ### 데이터베이스 설계
