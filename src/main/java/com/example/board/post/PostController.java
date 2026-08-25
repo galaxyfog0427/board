@@ -5,8 +5,6 @@ import com.example.board.comment.CommentRepository;
 import com.example.board.login.SessionConst;
 import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -84,7 +82,7 @@ public class PostController {
         Post post = postRepository.findById(postId);
 
         if (!loginMember.getId().equals(post.getMemberId())) {
-            throw new IllegalStateException("본인이 작성한 게시글만 수정할 수 있습니다.");
+            throw new UnauthorizedPostAccessException("본인이 작성한 게시글만 수정할 수 있습니다.");
         }
 
         PostEditForm postEditForm = new PostEditForm();
@@ -106,7 +104,7 @@ public class PostController {
         Post post = postRepository.findById(postId);
 
         if (!loginMember.getId().equals(post.getMemberId())) {
-            throw new IllegalStateException("본인이 작성한 게시글만 수정할 수 있습니다.");
+            throw new UnauthorizedPostAccessException("본인이 작성한 게시글만 수정할 수 있습니다.");
         }
 
         if (bindingResult.hasErrors()) {

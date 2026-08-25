@@ -6,7 +6,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -53,7 +52,7 @@ class PostRepositoryTest {
         //delete
         postRepository.delete(savedPostId);
         assertThatThrownBy(() -> postRepository.findById(savedPostId))
-                .isInstanceOf(EmptyResultDataAccessException.class);
+                .isInstanceOf(PostNotFoundException.class);
     }
 
     @Test

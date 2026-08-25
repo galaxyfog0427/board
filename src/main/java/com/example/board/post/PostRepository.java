@@ -1,5 +1,6 @@
 package com.example.board.post;
 
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -41,7 +42,11 @@ public class PostRepository {
                 WHERE post_id = ?
                 """;
 
-        return template.queryForObject(sql, postRowMapper(), postId);
+        try {
+            return template.queryForObject(sql, postRowMapper(), postId);
+        } catch (EmptyResultDataAccessException e) {
+            throw new PostNotFoundException("존재하지 않는 게시글입니다. postId=" + postId);
+        }
     }
 
     public List<Post> findAll() {

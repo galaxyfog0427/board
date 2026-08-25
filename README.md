@@ -130,7 +130,9 @@ CREATE TABLE comment (
 - `@SessionAttribute`로 세션 조회 코드 최소화
 - 게시글 수정 시 작성자 본인 확인 추가
 - 스프링 부트 기본 오류 처리(`BasicErrorController`) 활용, `templates/error/4xx.html, 5xx.html` 등록으로 기본 스프링 에러 페이지 대체
-- (예정) API 예외 처리 적용 예정
+- `@ControllerAdvice`, `@ExceptionHandler`로 예외 처리 로직 일원화
+- 영속성 계층 예외(`EmptyResultDataAccessException`)를 도메인 예외(`PostNotFoundException`) 변환 책임을 Repository로 이동
+- (예정) 스프링 타입 컨버터 적용 예정
 
 ### 데이터베이스 설계
 - 개념적/논리적 모델링 설계 완료 (Member/Post/Comment 엔티티, 관계, 참여도, 식별 여부 확정)
