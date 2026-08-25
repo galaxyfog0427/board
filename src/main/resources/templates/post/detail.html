@@ -14,6 +14,18 @@
     <a th:href="@{/posts/{postId}/edit(postId=${post.id})}" th:text="#{button.edit}">수정</a>
     <a th:href="@{/posts}" th:text="#{button.list}">목록으로</a>
 
+    <div th:if="${!postFiles.isEmpty()}">
+        <h3 th:text="#{post.files}"></h3>
+        <ul>
+            <li th:each="file : ${postFiles}">
+                <a th:href="@{/posts/files/{fileId}/download(fileId=${file.id})}" th:text="${file.uploadFileName}"></a>
+                <div th:if="${file.image}">
+                    <img th:src="@{/posts/files/{fileId}/view(fileId=${file.id})}" style="max-width: 300px;"/>
+                </div>
+            </li>
+        </ul>
+    </div>
+
     <h3 th:text="#{label.comments}">댓글</h3>
     <ul>
         <li th:each="comment : ${comments}" th:text="${comment.content}"></li>

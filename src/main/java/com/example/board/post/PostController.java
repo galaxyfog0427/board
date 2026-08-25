@@ -2,6 +2,8 @@ package com.example.board.post;
 
 import com.example.board.comment.Comment;
 import com.example.board.comment.CommentRepository;
+import com.example.board.file.FileStore;
+import com.example.board.file.UploadFile;
 import com.example.board.login.SessionConst;
 import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
@@ -10,8 +12,10 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.io.IOException;
 import java.util.List;
 
 @Controller
@@ -21,11 +25,15 @@ public class PostController {
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
     private final MemberRepository memberRepository;
+    private final PostFileRepository postFileRepository;
+    private final FileStore fileStore;
 
-    public PostController(PostRepository postRepository, CommentRepository commentRepository, MemberRepository memberRepository) {
+    public PostController(PostRepository postRepository, CommentRepository commentRepository, MemberRepository memberRepository, PostFileRepository postFileRepository, FileStore fileStore) {
         this.postRepository = postRepository;
         this.commentRepository = commentRepository;
         this.memberRepository = memberRepository;
+        this.postFileRepository = postFileRepository;
+        this.fileStore = fileStore;
     }
 
     @GetMapping
@@ -41,9 +49,11 @@ public class PostController {
         Post post = postRepository.findById(postId);
         Member writer = memberRepository.findById(post.getMemberId());
         List<Comment> comments = commentRepository.findByPostId(postId);
+        List<PostFile> postFiles = postFileRepository.findByPostId(postId);
         model.addAttribute("post", post);
         model.addAttribute("writer", writer);
         model.addAttribute("comments", comments);
+        model.addAttribute("postFiles", postFiles);
         return "post/detail";
     }
 
@@ -55,7 +65,7 @@ public class PostController {
 
     @PostMapping("/add")
     public String save(@Validated @ModelAttribute PostSaveForm postSaveForm, BindingResult bindingResult,
-                       @SessionAttribute(SessionConst.LOGIN_MEMBER) Member loginMember, RedirectAttributes redirectAttributes) {
+                       @SessionAttribute(SessionConst.LOGIN_MEMBER) Member loginMember, RedirectAttributes redirectAttributes) throws IOException {
 
         if (bindingResult.hasErrors()) {
             return "post/addForm";
@@ -70,6 +80,24 @@ public class PostController {
                 null,
                 null);
         Long savedPostId = postRepository.save(post);
+
+        if (postSaveForm.getFiles() != null) {
+            for (MultipartFile multipartFile : postSaveForm.getFiles()) {
+                if (multipartFile.isEmpty()) {
+                    continue;
+                }
+                UploadFile uploadFile = fileStore.storeFile(multipartFile);
+                PostFile postFile = new PostFile(
+                        null,
+                        savedPostId,
+                        uploadFile.getUploadFileName(),
+                        uploadFile.getStoreFileName(),
+                        multipartFile.getSize(),
+                        null
+                );
+                postFileRepository.save(postFile);
+            }
+        }
 
         redirectAttributes.addAttribute("postId", savedPostId);
         return "redirect:/posts/{postId}";

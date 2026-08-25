@@ -1,7 +1,9 @@
 package com.example.board.post;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 public class PostSaveForm {
 
@@ -10,6 +12,15 @@ public class PostSaveForm {
 
     @NotBlank(message = "내용을 입력해주세요.")
     private String content;
+    private List<MultipartFile> files;
+
+    public List<MultipartFile> getFiles() {
+        return files;
+    }
+
+    public void setFiles(List<MultipartFile> files) {
+        this.files = files;
+    }
 
     public PostSaveForm() {
     }

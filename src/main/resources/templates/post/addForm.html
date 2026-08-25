@@ -15,7 +15,7 @@
 <body>
 <div>
     <h2 th:text="#{page.add}">게시글 등록</h2>
-    <form th:action="@{/posts/add}" th:object="${postSaveForm}" method="post">
+    <form th:action="@{/posts/add}" th:object="${postSaveForm}" method="post" enctype="multipart/form-data">
         <div>
             <label for="title" th:text="#{post.title}">제목</label>
             <input type="text" id="title" th:field="*{title}" th:errorclass="field-error">
@@ -25,6 +25,10 @@
             <label for="content" th:text="#{post.content}">내용</label>
             <input type="text" id="content" th:field="*{content}" th:errorclass="field-error"/>
             <div class="error-message" th:errors="*{content}"></div>
+        </div>
+        <div>
+            <label for="files" th:text="#{post.files}"></label>
+            <input type="file" id="files" th:field="*{files}" multiple>
         </div>
         <button type="submit" th:text="#{button.save}">저장</button>
     </form>
