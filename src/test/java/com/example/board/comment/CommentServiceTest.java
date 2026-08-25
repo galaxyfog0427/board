@@ -4,7 +4,6 @@ import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
 import com.example.board.post.Post;
 import com.example.board.post.PostRepository;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

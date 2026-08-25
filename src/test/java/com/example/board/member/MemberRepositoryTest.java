@@ -14,8 +14,6 @@ class MemberRepositoryTest {
 
     @Autowired
     MemberRepository repository;
-    @Autowired
-    private MemberRepository memberRepository;
 
     @Test
     void crud() {
@@ -44,21 +42,21 @@ class MemberRepositoryTest {
     @DisplayName("existsByLoginId()는 존재 여부를 정확히 반환한다.")
     void existsByLoginId() {
         Member member = new Member(null, "dupCheckId", "test1234!", "중복체크", null, null, null, null);
-        memberRepository.save(member);
+        repository.save(member);
 
-        assertThat(memberRepository.existsByLoginId("dupCheckId")).isTrue();
-        assertThat(memberRepository.existsByLoginId("neverUsedId")).isFalse();
+        assertThat(repository.existsByLoginId("dupCheckId")).isTrue();
+        assertThat(repository.existsByLoginId("neverUsedId")).isFalse();
     }
 
     @Test
     @DisplayName("findByLoginId()는 없는 아이디면 null을 반환한다.")
     void findByLoginId() {
         Member member = new Member(null, "loginFindId", "test1234!", "로그인테스터", null, null, null, null);
-        memberRepository.save(member);
+        repository.save(member);
 
-        Member foundMember = memberRepository.findByLoginId("loginFindId");
+        Member foundMember = repository.findByLoginId("loginFindId");
         assertThat(foundMember.getNickname()).isEqualTo("로그인테스터");
 
-        assertThat(memberRepository.findByLoginId("neverUsedId")).isNull();
+        assertThat(repository.findByLoginId("neverUsedId")).isNull();
     }
 }
