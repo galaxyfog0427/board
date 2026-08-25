@@ -36,6 +36,15 @@ Spring Boot와 MySQL을 사용해 백엔드 기본기를 학습하기 위한 게
 | created_at | DATETIME | 작성 시간 |
 | updated_at | DATETIME | 수정 시간 |
 
+## Post_file 테이블
+| 컬럼 | 타입 | 설명 |
+|---|---|---|
+| file_id | BIGINT | 파일 식별자, PK, AUTO_INCREMENT |
+| post_id | BIGINT | 게시글, FK (post.post_id 참조) |
+| upload_file_name | VARCHAR(255) | 사용자가 업로드한 원본 파일명 |
+| store_file_name | VARCHAR(255) | 서버 내부 저장용 파일명 (UUID, 충돌 방지) |
+| file_size | BIGINT | 파일 크기 (byte) |
+| created_at | DATETIME | 업로드 시간 |
 
 ## 현재 테이블 설계
 ```sql
@@ -74,6 +83,17 @@ CREATE TABLE comment (
     PRIMARY KEY (comment_id),
     CONSTRAINT fk_comment_post FOREIGN KEY (post_id) REFERENCES post (post_id),
     CONSTRAINT fk_comment_member FOREIGN KEY (member_id) REFERENCES member (member_id)
+);
+
+CREATE TABLE post_file (
+    file_id BIGINT NOT NULL AUTO_INCREMENT,
+    post_id BIGINT NOT NULL,
+    upload_file_name VARCHAR(255) NOT NULL,
+    store_file_name VARCHAR(255) NOT NULL,
+    file_size BIGINT NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (file_id),
+    CONSTRAINT fk_post_file_post FOREIGN KEY (post_id) REFERENCES post (post_id)
 );
 ```
 
