@@ -129,7 +129,8 @@ CREATE TABLE comment (
 - 로그인 성공 후 원래 요청 경로로 복귀하는 `redirectURL` 처리
 - `@SessionAttribute`로 세션 조회 코드 최소화
 - 게시글 수정 시 작성자 본인 확인 추가
-- (예정) 예외 처리와 오류 페이지 커스터마이징
+- 스프링 부트 기본 오류 처리(`BasicErrorController`) 활용, `templates/error/4xx.html, 5xx.html` 등록으로 기본 스프링 에러 페이지 대체
+- (예정) API 예외 처리 적용 예정
 
 ### 데이터베이스 설계
 - 개념적/논리적 모델링 설계 완료 (Member/Post/Comment 엔티티, 관계, 참여도, 식별 여부 확정)
