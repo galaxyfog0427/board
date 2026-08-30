@@ -77,7 +77,7 @@ public class JdbcTemplateMemberRepository implements MemberRepository {
                 rs.getString("login_id"),
                 rs.getString("password"),
                 rs.getString("nickname"),
-                rs.getString("status"),
+                MemberStatus.valueOf(rs.getString("status")),
                 rs.getTimestamp("withdrawn_at") != null ?
                         rs.getTimestamp("withdrawn_at").toLocalDateTime() : null,
                 rs.getTimestamp("created_at").toLocalDateTime(),

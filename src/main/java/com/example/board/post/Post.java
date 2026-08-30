@@ -1,16 +1,26 @@
 package com.example.board.post;
 
+import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 
+@Entity
+@Table(name = "post")
 public class Post {
 
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "post_id")
     private Long id;
+
     private Long memberId;
     private String title;
     private String content;
     private Integer commentCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    protected Post() {
+    }
 
     public Post(Long id, Long memberId, String title, String content, Integer commentCount, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;

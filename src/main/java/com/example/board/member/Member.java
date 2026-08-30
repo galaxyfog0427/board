@@ -1,19 +1,32 @@
 package com.example.board.member;
 
+import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 
+@Entity
+@Table(name = "member")
 public class Member {
 
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "member_id")
     private Long id;
+
     private String loginId;
     private String password;
     private String nickname;
-    private String status;
+
+    @Enumerated(EnumType.STRING)
+    private MemberStatus status;
+
     private LocalDateTime withdrawnAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public Member(Long id, String loginId, String password, String nickname, String status, LocalDateTime withdrawnAt, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    protected Member() {
+    }
+
+    public Member(Long id, String loginId, String password, String nickname, MemberStatus status, LocalDateTime withdrawnAt, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.loginId = loginId;
         this.password = password;
@@ -40,7 +53,7 @@ public class Member {
         return nickname;
     }
 
-    public String getStatus() {
+    public MemberStatus getStatus() {
         return status;
     }
 
@@ -63,7 +76,7 @@ public class Member {
                 ", loginId='" + loginId + '\'' +
                 ", password='" + password + '\'' +
                 ", nickname='" + nickname + '\'' +
-                ", status='" + status + '\'' +
+                ", status=" + status +
                 ", withdrawnAt=" + withdrawnAt +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +

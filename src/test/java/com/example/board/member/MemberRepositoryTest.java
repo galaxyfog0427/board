@@ -35,7 +35,7 @@ class MemberRepositoryTest {
         assertThat(foundMember.getLoginId()).isEqualTo(member.getLoginId());
         assertThat(foundMember.getPassword()).isEqualTo(member.getPassword());
         assertThat(foundMember.getNickname()).isEqualTo(member.getNickname());
-        assertThat(foundMember.getStatus()).isEqualTo("ACTIVE");
+        assertThat(foundMember.getStatus()).isEqualTo(MemberStatus.ACTIVE);
     }
 
     @Test

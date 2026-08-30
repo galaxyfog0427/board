@@ -1,14 +1,25 @@
 package com.example.board.comment;
 
+import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 
+@Entity
+@Table(name = "comment")
 public class Comment {
+
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "comment_id")
     private Long id;
+
     private Long postId;
     private Long memberId;
     private String content;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    protected Comment() {
+    }
 
     public Comment(Long id, Long postId, Long memberId, String content, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
