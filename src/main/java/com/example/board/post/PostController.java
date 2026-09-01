@@ -27,13 +27,20 @@ public class PostController {
     private final MemberRepository memberRepository;
     private final PostFileRepository postFileRepository;
     private final FileStore fileStore;
+    private final PostService postService;
 
-    public PostController(PostRepository postRepository, CommentRepository commentRepository, MemberRepository memberRepository, PostFileRepository postFileRepository, FileStore fileStore) {
+    public PostController(PostRepository postRepository,
+                          CommentRepository commentRepository,
+                          MemberRepository memberRepository,
+                          PostFileRepository postFileRepository,
+                          FileStore fileStore,
+                          PostService postService) {
         this.postRepository = postRepository;
         this.commentRepository = commentRepository;
         this.memberRepository = memberRepository;
         this.postFileRepository = postFileRepository;
         this.fileStore = fileStore;
+        this.postService = postService;
     }
 
     @GetMapping
@@ -46,8 +53,8 @@ public class PostController {
 
     @GetMapping("/{postId}")
     public String detail(@PathVariable("postId") Long postId, Model model) {
-        Post post = postRepository.findById(postId);
-        Member writer = memberRepository.findById(post.getMemberId());
+        Post post = postService.getPost(postId);
+        Member writer = memberRepository.findById(post.getMemberId()).get();
         List<Comment> comments = commentRepository.findByPostId(postId);
         List<PostFile> postFiles = postFileRepository.findByPostId(postId);
         model.addAttribute("post", post);
@@ -79,7 +86,7 @@ public class PostController {
                 null,
                 null,
                 null);
-        Long savedPostId = postRepository.save(post);
+        Long savedPostId = postService.save(post);
 
         if (postSaveForm.getFiles() != null) {
             for (MultipartFile multipartFile : postSaveForm.getFiles()) {
@@ -107,7 +114,7 @@ public class PostController {
     public String editForm(@PathVariable("postId") Long postId,
                            @SessionAttribute(SessionConst.LOGIN_MEMBER) Member loginMember,
                            Model model) {
-        Post post = postRepository.findById(postId);
+        Post post = postService.getPost(postId);
 
         if (!loginMember.getId().equals(post.getMemberId())) {
             throw new UnauthorizedPostAccessException("본인이 작성한 게시글만 수정할 수 있습니다.");
@@ -129,7 +136,7 @@ public class PostController {
                        @SessionAttribute(SessionConst.LOGIN_MEMBER) Member loginMember,
                        Model model) {
 
-        Post post = postRepository.findById(postId);
+        Post post = postService.getPost(postId);
 
         if (!loginMember.getId().equals(post.getMemberId())) {
             throw new UnauthorizedPostAccessException("본인이 작성한 게시글만 수정할 수 있습니다.");
@@ -140,7 +147,7 @@ public class PostController {
             return "post/editForm";
         }
 
-        postRepository.update(postId, postEditForm.getTitle(), postEditForm.getContent());
+        postService.editPost(postId, postEditForm.getTitle(), postEditForm.getContent());
         return "redirect:/posts/{postId}";
     }
 }
