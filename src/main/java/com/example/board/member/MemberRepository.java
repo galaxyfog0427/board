@@ -1,10 +1,8 @@
 package com.example.board.member;
 
-public interface MemberRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
 
-    Long save(Member member);
-
-    Member findById(Long memberId);
+public interface MemberRepository extends JpaRepository<Member, Long> {
 
     boolean existsByLoginId(String loginId);
 

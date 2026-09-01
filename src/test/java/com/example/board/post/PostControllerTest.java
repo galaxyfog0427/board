@@ -51,8 +51,8 @@ class PostControllerTest {
     void addFormWithLogin() throws Exception {
         Long memberId = memberRepository.save(
                 new Member(null, "mockMvcTester", "test1234!", "목테스터", null, null, null, null)
-        );
-        Member loginMember = memberRepository.findById(memberId);
+        ).getId();
+        Member loginMember = memberRepository.findById(memberId).get();
 
         mockMvc.perform(get("/posts/add")
                         .sessionAttr(SessionConst.LOGIN_MEMBER, loginMember))
@@ -65,8 +65,8 @@ class PostControllerTest {
     void saveSuccess() throws Exception {
         Long memberId = memberRepository.save(
                 new Member(null, "mockMvcTester", "test1234!", "목테스터", null, null, null, null)
-        );
-        Member loginMember = memberRepository.findById(memberId);
+        ).getId();
+        Member loginMember = memberRepository.findById(memberId).get();
 
         mockMvc.perform(post("/posts/add")
                         .sessionAttr(SessionConst.LOGIN_MEMBER, loginMember)
@@ -81,14 +81,14 @@ class PostControllerTest {
     void editFormForbidden() throws Exception {
         Long writerId = memberRepository.save(
                 new Member(null, "mockMvcWriter", "test1234!", "작성자", null, null, null, null)
-        );
+        ).getId();
         Long otherId = memberRepository.save(
                 new Member(null, "mockMvcOther", "test1234!", "다른사람", null, null, null, null)
-        );
-        Member otherMember = memberRepository.findById(otherId);
+        ).getId();
+        Member otherMember = memberRepository.findById(otherId).get();
 
         Post post = new Post(null, writerId, "title", "content", null, null, null);
-        Long postId = postRepository.save(post);
+        Long postId = postRepository.save(post).getId();
 
         mockMvc.perform(get("/posts/" + postId + "/edit")
                         .sessionAttr(SessionConst.LOGIN_MEMBER, otherMember))

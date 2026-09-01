@@ -25,7 +25,7 @@ class PostRepositoryTest {
     @Test
     void crud() {
         Member member = new Member(null, "postTester", "test1234!", "테스터", null, null, null, null);
-        Long memberId = memberRepository.save(member);
+        Long memberId = memberRepository.save(member).getId();
 
         //create
         Post post = new Post(
@@ -37,36 +37,36 @@ class PostRepositoryTest {
                 null,
                 null
         );
-        Long savedPostId = postRepository.save(post);
+        Long savedPostId = postRepository.save(post).getId();
 
         //read
-        Post foundPost = postRepository.findById(savedPostId);
+        Post foundPost = postRepository.findById(savedPostId).get();
         assertThat(foundPost.getTitle()).isEqualTo(post.getTitle());
         assertThat(foundPost.getContent()).isEqualTo(post.getContent());
 
         //update
-        postRepository.update(savedPostId, "수정된 제목", "수정된 내용");
-        Post updatedPost = postRepository.findById(savedPostId);
+        post.changeTitleAndContent("수정된 제목", "수정된 내용");
+        Post updatedPost = postRepository.findById(savedPostId).get();
         System.out.println(updatedPost);
 
         //delete
-        postRepository.delete(savedPostId);
-        assertThatThrownBy(() -> postRepository.findById(savedPostId))
-                .isInstanceOf(PostNotFoundException.class);
+        postRepository.deleteById(savedPostId);
+        postRepository.flush();
+        assertThat(postRepository.findById(savedPostId)).isEmpty();
     }
 
     @Test
     @DisplayName("findAll()은 최신 게시글이 먼저 오도록 정렬한다")
     void findAllOrderedByLatest() {
         Member member = new Member(null, "listTester", "test1234!", "리스트테스트", null, null, null, null);
-        Long memberId = memberRepository.save(member);
+        Long memberId = memberRepository.save(member).getId();
 
         Long firstPostId = postRepository.save(
-                new Post(null, memberId, "첫 번째 글", "내용1", null, null, null));
+                new Post(null, memberId, "첫 번째 글", "내용1", null, null, null)).getId();
         Long secondPostId = postRepository.save(
-                new Post(null, memberId, "두 번째 글", "내용2", null, null, null));
+                new Post(null, memberId, "두 번째 글", "내용2", null, null, null)).getId();
         Long thirdPostId = postRepository.save(
-                new Post(null, memberId, "세 번째 글", "내용3", null, null, null));
+                new Post(null, memberId, "세 번째 글", "내용3", null, null, null)).getId();
 
         List<Post> posts = postRepository.findAll();
         assertThat(posts.get(0).getId()).isEqualTo(thirdPostId);

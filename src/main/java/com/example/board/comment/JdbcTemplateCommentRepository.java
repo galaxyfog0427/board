@@ -10,8 +10,8 @@ import javax.sql.DataSource;
 import java.sql.*;
 import java.util.List;
 
-@Repository
-public class JdbcTemplateCommentRepository implements CommentRepository {
+//@Repository
+public class JdbcTemplateCommentRepository /*implements CommentRepository*/ {
 
     private final JdbcTemplate template;
 
@@ -19,7 +19,6 @@ public class JdbcTemplateCommentRepository implements CommentRepository {
         this.template = new JdbcTemplate(dataSource);
     }
 
-    @Override
     public Long save(Comment comment) {
         String sql = "INSERT INTO comment(post_id, member_id, content) " +
                 "VALUES (?, ?, ?)";
@@ -36,7 +35,6 @@ public class JdbcTemplateCommentRepository implements CommentRepository {
         return keyHolder.getKey().longValue();
     }
 
-    @Override
     public Comment findById(Long commentId) {
         String sql = "SELECT comment_id, post_id, member_id, content, created_at, updated_at " +
                 "FROM comment WHERE comment_id = ?";
@@ -44,7 +42,6 @@ public class JdbcTemplateCommentRepository implements CommentRepository {
         return template.queryForObject(sql, commentRowMapper(), commentId);
     }
 
-    @Override
     public List<Comment> findByPostId(Long postId) {
         String sql = """
                 SELECT comment_id, post_id, member_id, content, created_at, updated_at

@@ -1,19 +1,23 @@
 package com.example.board.post;
 
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
 import java.util.List;
 
-public interface PostRepository {
+public interface PostRepository extends JpaRepository<Post, Long> {
 
-    Long save(Post post);
 
-    Post findById(Long postId);
+    default List<Post> findAll() {
+        return findAll(Sort.by(Sort.Direction.DESC, "createdAt", "id"));
+    };
 
-    List<Post> findAll();
+    @Modifying(clearAutomatically = true)
+    @Query("update Post p set p.commentCount = p.commentCount + 1 where p.id = :postId")
+    void incrementCommentCount(@Param("postId") Long postId);
 
-    void update(Long postId, String title, String content);
-
-    void delete(Long postId);
-
-    void incrementCommentCount(Long postId);
 
 }

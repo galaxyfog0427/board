@@ -10,8 +10,8 @@ import org.springframework.stereotype.Repository;
 import javax.sql.DataSource;
 import java.sql.*;
 
-@Repository
-public class JdbcTemplateMemberRepository implements MemberRepository {
+//@Repository
+public class JdbcTemplateMemberRepository /*implements MemberRepository*/{
 
     private final JdbcTemplate template;
 
@@ -19,7 +19,6 @@ public class JdbcTemplateMemberRepository implements MemberRepository {
         this.template = new JdbcTemplate(dataSource);
     }
 
-    @Override
     public Long save(Member member) {
         String sql = "INSERT INTO member(login_id, password, nickname) " +
                 "VALUES (?, ?, ?)";
@@ -36,7 +35,6 @@ public class JdbcTemplateMemberRepository implements MemberRepository {
         return keyHolder.getKey().longValue();
     }
 
-    @Override
     public Member findById(Long memberId) {
         String sql = "SELECT member_id, login_id, password, nickname, status, withdrawn_at, created_at, updated_at " +
                 "FROM member WHERE member_id = ?";
@@ -44,7 +42,6 @@ public class JdbcTemplateMemberRepository implements MemberRepository {
         return template.queryForObject(sql, memberRowMapper(), memberId);
     }
 
-    @Override
     public boolean existsByLoginId(String loginId) {
         String sql = """
                 SELECT COUNT(*)
@@ -56,7 +53,6 @@ public class JdbcTemplateMemberRepository implements MemberRepository {
         return count != null && count > 0;
     }
 
-    @Override
     public Member findByLoginId(String loginId) {
         String sql = """
                 SELECT member_id, login_id, password, nickname, status, withdrawn_at, created_at, updated_at

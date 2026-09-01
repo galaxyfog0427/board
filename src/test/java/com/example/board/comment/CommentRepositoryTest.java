@@ -38,7 +38,7 @@ class CommentRepositoryTest {
                 null,
                 null,
                 null);
-        Long memberId = memberRepository.save(member);
+        Long memberId = memberRepository.save(member).getId();
 
         Post post = new Post(
                 null,
@@ -49,7 +49,7 @@ class CommentRepositoryTest {
                 null,
                 null
         );
-        Long postId = postRepository.save(post);
+        Long postId = postRepository.save(post).getId();
 
         Comment comment = new Comment(
                 null,
@@ -59,9 +59,9 @@ class CommentRepositoryTest {
                 null,
                 null
         );
-        Long commentId = commentRepository.save(comment);
+        Long commentId = commentRepository.save(comment).getId();
 
-        Comment foundComment = commentRepository.findById(commentId);
+        Comment foundComment = commentRepository.findById(commentId).get();
         assertThat(foundComment.getContent()).isEqualTo(comment.getContent());
         assertThat(foundComment.getPostId()).isEqualTo(comment.getPostId());
         assertThat(foundComment.getMemberId()).isEqualTo(comment.getMemberId());
@@ -72,17 +72,17 @@ class CommentRepositoryTest {
     void findByPostIdOrderedByOldest() {
         Member member = new Member(
                 null, "commenter2", "test1234!", "댓글러", null, null, null, null);
-        Long memberId = memberRepository.save(member);
+        Long memberId = memberRepository.save(member).getId();
 
         Post post = new Post(null, memberId, "제목", "내용", null, null, null);
-        Long postId = postRepository.save(post);
+        Long postId = postRepository.save(post).getId();
 
         Long firstCommentId = commentRepository.save(
-                new Comment(null, postId, memberId, "첫 댓글", null, null));
+                new Comment(null, postId, memberId, "첫 댓글", null, null)).getId();
         Long secondCommentId = commentRepository.save(
-                new Comment(null, postId, memberId, "두번째 댓글", null, null));
+                new Comment(null, postId, memberId, "두번째 댓글", null, null)).getId();
         Long thirdCommentId = commentRepository.save(
-                new Comment(null, postId, memberId, "세번째 댓글", null, null));
+                new Comment(null, postId, memberId, "세번째 댓글", null, null)).getId();
 
         List<Comment> comments = commentRepository.findByPostId(postId);
 

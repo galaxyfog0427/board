@@ -17,7 +17,7 @@ public class CommentService {
 
     @Transactional
     public Long addComment(Comment comment) {
-        Long commentId = commentRepository.save(comment);
+        Long commentId = commentRepository.save(comment).getId();
         validateForRollbackTest(comment);
         postRepository.incrementCommentCount(comment.getPostId());
         return commentId;

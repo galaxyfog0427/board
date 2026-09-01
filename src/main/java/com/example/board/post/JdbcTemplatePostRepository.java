@@ -11,8 +11,8 @@ import javax.sql.DataSource;
 import java.sql.*;
 import java.util.List;
 
-@Repository
-public class JdbcTemplatePostRepository implements PostRepository {
+//@Repository
+public class JdbcTemplatePostRepository /*implements PostRepository*/ {
 
     private final JdbcTemplate template;
 
@@ -20,7 +20,7 @@ public class JdbcTemplatePostRepository implements PostRepository {
         this.template = new JdbcTemplate(dataSource);
     }
 
-    @Override
+
     public Long save(Post post) {
         String sql = "INSERT INTO post(member_id, title, content) VALUES (?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -36,7 +36,6 @@ public class JdbcTemplatePostRepository implements PostRepository {
         return keyHolder.getKey().longValue();
     }
 
-    @Override
     public Post findById(Long postId) {
         String sql = """
                 SELECT post_id, member_id, title, content, comment_count, created_at, updated_at
@@ -51,7 +50,6 @@ public class JdbcTemplatePostRepository implements PostRepository {
         }
     }
 
-    @Override
     public List<Post> findAll() {
         String sql = """
                 SELECT post_id, member_id, title, content, comment_count, created_at, updated_at
@@ -62,7 +60,6 @@ public class JdbcTemplatePostRepository implements PostRepository {
         return template.query(sql, postRowMapper());
     }
 
-    @Override
     public void update(Long postId, String title, String content) {
         String sql = """
                 UPDATE post
@@ -73,13 +70,11 @@ public class JdbcTemplatePostRepository implements PostRepository {
         template.update(sql, title, content, postId);
     }
 
-    @Override
     public void delete(Long postId) {
         String sql = "DELETE FROM post WHERE post_id = ?";
         template.update(sql, postId);
     }
 
-    @Override
     public void incrementCommentCount(Long postId) {
         String sql = "UPDATE post SET comment_count = comment_count + 1 WHERE post_id = ?";
         template.update(sql, postId);

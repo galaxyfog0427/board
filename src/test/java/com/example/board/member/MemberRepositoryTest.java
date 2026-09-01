@@ -28,10 +28,10 @@ class MemberRepositoryTest {
                 null,
                 null);
 
-        Long savedMemberId = repository.save(member);
+        Member savedMember = repository.save(member);
 
         //read
-        Member foundMember = repository.findById(savedMemberId);
+        Member foundMember = repository.findById(savedMember.getId()).get();
         assertThat(foundMember.getLoginId()).isEqualTo(member.getLoginId());
         assertThat(foundMember.getPassword()).isEqualTo(member.getPassword());
         assertThat(foundMember.getNickname()).isEqualTo(member.getNickname());
