@@ -158,7 +158,16 @@ CREATE TABLE post_file (
 - MockMvc 기반 Controller 계층 테스트 추가 (`PostControllerTest`, `MemberControllerTest`, `LoginControllerTest`)
 
 #### JPA
-- 기술 스택에 Spring Data JPA(Hibernate) 추가, JPA 엔티티 매핑 완료
+- Member/Post/Comment를 JPA 엔티티로 매핑, `protected` 기본 생성자 추가
+- Member.status를 String에서 MemberStatus enum으로 전환
+- DB DEFAULT 컬럼(status, created_at, updated_at, comment_count)에 의존하던 로직이 JPA에서는 깨지는 것을 확인, `@PrePersist`/`@PreUpdate`로 엔티티가 null로 넘어가지 않고 기본값을 직접 책임지도록 수정
+- MemberRepository, CommentRepository, PostRepository를 `JpaRepository` 상속으로 전환, 기존 JdbcTemplate 구현체는 빈 등록만 해제하고 참고용으로 보존
+- `CommentRepository.findByPostId`는 원본 정렬 순서 유지를 위해 `@Quary`로 직접 작성
+- `PostRepository.incrementCommentCount()`는 `@Modifying` 벌크 쿼리로 전환
+- `PostRepository.findAll()`을 인터페이스 내 `default` 메서드로 재정의하여 기존 정렬 기준(created_at DESC, post_id DESC) 유지
+- 게시글 수정 로직을 Repository의 명시적 update() 대신 변경 감지(더티 체킹) 기반으로 전환, 이를 위해 `PostService` 신설 (트랜잭션 경계와 `PostNotFoundException` 변환 책임을 기존 Repository에서 Service로 이동)
+- `ddl-auto=validate`로 JPA 엔티티 매핑과 기존 DDL 스키마의 정합성 검증
+
 
 ### 데이터베이스 설계
 - 개념적/논리적 모델링 설계 완료 (Member/Post/Comment 엔티티, 관계, 참여도, 식별 여부 확정)
