@@ -37,6 +37,21 @@ public class Member {
         this.updatedAt = updatedAt;
     }
 
+    @PrePersist
+    void prePersist() {
+        LocalDateTime now = LocalDateTime.now();
+        if (this.status == null) {
+            this.status = MemberStatus.ACTIVE;
+        }
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+
+    @PreUpdate
+    void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+
     public Long getId() {
         return id;
     }

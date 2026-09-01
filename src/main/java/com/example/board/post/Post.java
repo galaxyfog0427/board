@@ -32,6 +32,26 @@ public class Post {
         this.updatedAt = updatedAt;
     }
 
+    @PrePersist
+    void prePersist() {
+        LocalDateTime now = LocalDateTime.now();
+        if (this.commentCount == null) {
+            this.commentCount = 0;
+        }
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+
+    @PreUpdate
+    void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void changeTitleAndContent(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
+
     public Long getId() {
         return id;
     }
