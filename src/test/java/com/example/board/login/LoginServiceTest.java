@@ -23,7 +23,7 @@ class LoginServiceTest {
     @Test
     @DisplayName("아이디, 비밀번호가 일치하면 로그인 성공")
     void loginSuccess() {
-        memberRepository.save(new Member(null, "loginTester", "correctPw1!", "로그인테스터", null, null, null, null));
+        memberRepository.save(new Member(null, "loginTester", "correctPw1!", "로그인테스터", null, null));
 
         Member loginMember = loginService.login("loginTester", "correctPw1!");
 
@@ -34,7 +34,7 @@ class LoginServiceTest {
     @Test
     @DisplayName("비밀번호가 틀리면 로그인 실패")
     void loginFailWrongPassword() {
-        memberRepository.save(new Member(null, "loginTester2", "correctPw1!", "로그인테스터", null, null, null, null));
+        memberRepository.save(new Member(null, "loginTester2", "correctPw1!", "로그인테스터", null, null));
 
         Member loginMember = loginService.login("loginTester2", "wrongPassword");
 

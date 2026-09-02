@@ -89,8 +89,6 @@ public class PostController {
                 loginMember.getId(),
                 postSaveForm.getTitle(),
                 postSaveForm.getContent(),
-                null,
-                null,
                 null);
         Long savedPostId = postService.save(post);
 

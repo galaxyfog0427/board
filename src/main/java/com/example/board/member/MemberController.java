@@ -41,7 +41,7 @@ public class MemberController {
                 memberJoinForm.getLoginId(),
                 memberJoinForm.getPassword(),
                 memberJoinForm.getNickname(),
-                null, null, null, null
+                null, null
         );
         memberRepository.save(member);
         return "redirect:/login";

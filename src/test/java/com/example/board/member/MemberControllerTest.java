@@ -37,7 +37,7 @@ class MemberControllerTest {
     @DisplayName("이미 존재하는 로그인 ID로 가입 시도하면 폼으로 되돌아간다")
     void joinDuplicateLoginId() throws Exception {
         memberRepository.save(
-                new Member(null, "duplicatedId", "test1234!", "먼저가입", null, null, null, null)
+                new Member(null, "duplicatedId", "test1234!", "먼저가입", null, null)
         );
 
         mockMvc.perform(post("/members/add")

@@ -35,8 +35,6 @@ class CommentRepositoryTest {
                 "member1234!",
                 "댓글러",
                 null,
-                null,
-                null,
                 null);
         Long memberId = memberRepository.save(member).getId();
 
@@ -45,8 +43,6 @@ class CommentRepositoryTest {
                 memberId,
                 "제목",
                 "내용",
-                null,
-                null,
                 null
         );
         Long postId = postRepository.save(post).getId();
@@ -55,9 +51,7 @@ class CommentRepositoryTest {
                 null,
                 postId,
                 memberId,
-                "댓글",
-                null,
-                null
+                "댓글"
         );
         Long commentId = commentRepository.save(comment).getId();
 
@@ -71,18 +65,18 @@ class CommentRepositoryTest {
     @DisplayName("findByPostId()는 먼저 작성된 댓글이 먼저 오도록 정렬한다")
     void findByPostIdOrderedByOldest() {
         Member member = new Member(
-                null, "commenter2", "test1234!", "댓글러", null, null, null, null);
+                null, "commenter2", "test1234!", "댓글러", null, null);
         Long memberId = memberRepository.save(member).getId();
 
-        Post post = new Post(null, memberId, "제목", "내용", null, null, null);
+        Post post = new Post(null, memberId, "제목", "내용", null);
         Long postId = postRepository.save(post).getId();
 
         Long firstCommentId = commentRepository.save(
-                new Comment(null, postId, memberId, "첫 댓글", null, null)).getId();
+                new Comment(null, postId, memberId, "첫 댓글")).getId();
         Long secondCommentId = commentRepository.save(
-                new Comment(null, postId, memberId, "두번째 댓글", null, null)).getId();
+                new Comment(null, postId, memberId, "두번째 댓글")).getId();
         Long thirdCommentId = commentRepository.save(
-                new Comment(null, postId, memberId, "세번째 댓글", null, null)).getId();
+                new Comment(null, postId, memberId, "세번째 댓글")).getId();
 
         List<Comment> comments = commentRepository.findByPostId(postId);
 

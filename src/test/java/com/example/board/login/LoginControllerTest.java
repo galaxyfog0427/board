@@ -35,7 +35,7 @@ class LoginControllerTest {
     @DisplayName("로그인 성공 시 세선에 회원 정보가 저장되고 redirectURL로 이동한다")
     void loginSuccess() throws Exception {
         memberRepository.save(
-                new Member(null, "loginMockTester", "test1234!", "tester", null, null, null, null)
+                new Member(null, "loginMockTester", "test1234!", "tester", null, null)
         );
 
         MvcResult result = mockMvc.perform(post("/login")
@@ -55,7 +55,7 @@ class LoginControllerTest {
     @DisplayName("비밀번호가 틀리면 로그인 폼으로 되돌아가고 세션이 생성되지 않는다")
     void loginFail() throws Exception {
         memberRepository.save(
-                new Member(null, "loginMockTester", "test1234!", "tester", null, null, null, null)
+                new Member(null, "loginMockTester", "test1234!", "tester", null, null)
         );
 
         MvcResult result = mockMvc.perform(post("/login")

@@ -24,8 +24,6 @@ class MemberRepositoryTest {
                 "test1234!",
                 "tester",
                 null,
-                null,
-                null,
                 null);
 
         Member savedMember = repository.save(member);
@@ -41,7 +39,7 @@ class MemberRepositoryTest {
     @Test
     @DisplayName("existsByLoginId()는 존재 여부를 정확히 반환한다.")
     void existsByLoginId() {
-        Member member = new Member(null, "dupCheckId", "test1234!", "중복체크", null, null, null, null);
+        Member member = new Member(null, "dupCheckId", "test1234!", "중복체크", null, null);
         repository.save(member);
 
         assertThat(repository.existsByLoginId("dupCheckId")).isTrue();
@@ -51,7 +49,7 @@ class MemberRepositoryTest {
     @Test
     @DisplayName("findByLoginId()는 없는 아이디면 null을 반환한다.")
     void findByLoginId() {
-        Member member = new Member(null, "loginFindId", "test1234!", "로그인테스터", null, null, null, null);
+        Member member = new Member(null, "loginFindId", "test1234!", "로그인테스터", null, null);
         repository.save(member);
 
         Member foundMember = repository.findByLoginId("loginFindId");
