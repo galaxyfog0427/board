@@ -1,12 +1,13 @@
 package com.example.board.post;
 
+import com.example.board.common.BaseTimeEntity;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "post")
-public class Post {
+public class Post extends BaseTimeEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "post_id")
@@ -16,35 +17,23 @@ public class Post {
     private String title;
     private String content;
     private Integer commentCount;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 
     protected Post() {
     }
 
-    public Post(Long id, Long memberId, String title, String content, Integer commentCount, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public Post(Long id, Long memberId, String title, String content, Integer commentCount) {
         this.id = id;
         this.memberId = memberId;
         this.title = title;
         this.content = content;
         this.commentCount = commentCount;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
     }
 
     @PrePersist
     void prePersist() {
-        LocalDateTime now = LocalDateTime.now();
         if (this.commentCount == null) {
             this.commentCount = 0;
         }
-        this.createdAt = now;
-        this.updatedAt = now;
-    }
-
-    @PreUpdate
-    void preUpdate() {
-        this.updatedAt = LocalDateTime.now();
     }
 
     public void changeTitleAndContent(String title, String content) {
@@ -72,24 +61,13 @@ public class Post {
         return commentCount;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
     @Override
     public String toString() {
         return "Post{" +
                 "id=" + id +
                 ", memberId=" + memberId +
                 ", title='" + title + '\'' +
-                ", content='" + content + '\'' +
                 ", commentCount=" + commentCount +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
                 '}';
     }
 }

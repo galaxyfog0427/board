@@ -1,12 +1,13 @@
 package com.example.board.comment;
 
+import com.example.board.common.BaseTimeEntity;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "comment")
-public class Comment {
+public class Comment extends BaseTimeEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "comment_id")
@@ -15,31 +16,15 @@ public class Comment {
     private Long postId;
     private Long memberId;
     private String content;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 
     protected Comment() {
     }
 
-    public Comment(Long id, Long postId, Long memberId, String content, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public Comment(Long id, Long postId, Long memberId, String content) {
         this.id = id;
         this.postId = postId;
         this.memberId = memberId;
         this.content = content;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-    }
-
-    @PrePersist
-    void prePersist() {
-        LocalDateTime now = LocalDateTime.now();
-        this.createdAt = now;
-        this.updatedAt = now;
-    }
-
-    @PreUpdate
-    void preUpdate() {
-        this.updatedAt = LocalDateTime.now();
     }
 
     public Long getId() {
@@ -58,13 +43,6 @@ public class Comment {
         return content;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
 
     @Override
     public String toString() {
@@ -72,9 +50,7 @@ public class Comment {
                 "id=" + id +
                 ", postId=" + postId +
                 ", memberId=" + memberId +
-                ", content='" + content + '\'' +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
+                ", content='" + content +
                 '}';
     }
 }

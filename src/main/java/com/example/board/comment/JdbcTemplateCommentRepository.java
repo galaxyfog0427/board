@@ -58,9 +58,7 @@ public class JdbcTemplateCommentRepository /*implements CommentRepository*/ {
                 rs.getLong("comment_id"),
                 rs.getLong("post_id"),
                 rs.getLong("member_id"),
-                rs.getString("content"),
-                rs.getTimestamp("created_at").toLocalDateTime(),
-                rs.getTimestamp("updated_at").toLocalDateTime()
+                rs.getString("content")
         );
     }
 }

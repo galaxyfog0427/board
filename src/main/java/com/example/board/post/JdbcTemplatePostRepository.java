@@ -86,9 +86,7 @@ public class JdbcTemplatePostRepository /*implements PostRepository*/ {
                 rs.getLong("member_id"),
                 rs.getString("title"),
                 rs.getString("content"),
-                rs.getInt("comment_count"),
-                rs.getTimestamp("created_at").toLocalDateTime(),
-                rs.getTimestamp("updated_at").toLocalDateTime()
+                rs.getInt("comment_count")
         );
     }
 

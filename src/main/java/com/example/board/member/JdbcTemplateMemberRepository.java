@@ -75,9 +75,7 @@ public class JdbcTemplateMemberRepository /*implements MemberRepository*/{
                 rs.getString("nickname"),
                 MemberStatus.valueOf(rs.getString("status")),
                 rs.getTimestamp("withdrawn_at") != null ?
-                        rs.getTimestamp("withdrawn_at").toLocalDateTime() : null,
-                rs.getTimestamp("created_at").toLocalDateTime(),
-                rs.getTimestamp("updated_at").toLocalDateTime()
+                        rs.getTimestamp("withdrawn_at").toLocalDateTime() : null
         );
     }
 
