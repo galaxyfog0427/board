@@ -6,6 +6,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -72,5 +75,43 @@ class PostRepositoryTest {
         assertThat(posts.get(0).getId()).isEqualTo(thirdPostId);
         assertThat(posts.get(1).getId()).isEqualTo(secondPostId);
         assertThat(posts.get(2).getId()).isEqualTo(firstPostId);
+    }
+
+    @Test
+    @DisplayName("findAll(Pageable)은 요청한 사이즈만큼 잘라서 반환하고 전체 개수를 함께 제공한다")
+    void findAllWithPageable() {
+        long beforeCount = postRepository.count();
+
+        Member member = new Member(null, "pageTester", "test1234!", "페이지테스터", null, null, null, null);
+        Long memberId = memberRepository.save(member).getId();
+
+        for (int i = 1; i <= 15; i++) {
+            postRepository.save(new Post(null, memberId, "제목" + i, "내용" + i, null, null, null));
+        }
+
+        Page<Post> firstPage = postRepository.findAll(
+                PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "id"))
+        );
+
+        assertThat(firstPage.getContent()).hasSize(10);
+        assertThat(firstPage.getTotalElements()).isEqualTo(beforeCount + 15);
+        assertThat(firstPage.hasNext()).isTrue();
+    }
+
+    @Test
+    @DisplayName("findAllWithWriter()는 작성자 닉네임을 함께 조회하고, count 쿼리는 JOIN 없이 동작한다")
+    void findAllWithWriter() {
+        long beforeCount = postRepository.count();
+
+        Member member = new Member(null, "writerTester", "test1234!", "글쓴이", null, null, null, null);
+        Long memberId = memberRepository.save(member).getId();
+
+        Long savedPostId = postRepository.save(new Post(null, memberId, "title", "content", null, null, null)).getId();
+
+        Page<PostListItem> page = postRepository.findAllWithWriter(PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "id")));
+
+        assertThat(page.getTotalElements()).isEqualTo(beforeCount + 1);
+        assertThat(page.getContent().get(0).getId()).isEqualTo(savedPostId);
+        assertThat(page.getContent().get(0).getWriterNickname()).isEqualTo("글쓴이");
     }
 }

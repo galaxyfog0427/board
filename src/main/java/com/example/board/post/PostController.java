@@ -7,6 +7,10 @@ import com.example.board.file.UploadFile;
 import com.example.board.login.SessionConst;
 import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -44,8 +48,10 @@ public class PostController {
     }
 
     @GetMapping
-    public String list(@SessionAttribute(name = SessionConst.LOGIN_MEMBER, required = false) Member loginMember, Model model) {
-        List<Post> posts = postRepository.findAll();
+    public String list(@SessionAttribute(name = SessionConst.LOGIN_MEMBER, required = false) Member loginMember,
+                       @PageableDefault(size = 10, sort = {"createdAt", "id"}, direction = Sort.Direction.DESC) Pageable pageable,
+                       Model model) {
+        Page<PostListItem> posts = postRepository.findAllWithWriter(pageable);
         model.addAttribute("posts", posts);
         model.addAttribute("loginMember", loginMember);
         return "post/list";

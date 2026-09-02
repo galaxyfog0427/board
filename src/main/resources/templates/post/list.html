@@ -20,6 +20,7 @@
         <tr>
             <th th:text="#{label.number}">번호</th>
             <th th:text="#{post.title}">제목</th>
+            <th th:text="#{post.writer}">작성자</th>
             <th th:text="#{post.commentCount}">댓글 수</th>
             <th th:text="#{post.createdAt}">작성일</th>
         </tr>
@@ -30,12 +31,30 @@
             <td>
                 <a th:href="@{/posts/{postId}(postId=${post.id})}" th:text="${post.title}"></a>
             </td>
+            <td th:text="${post.writerNickname}"></td>
             <td th:text="${post.commentCount}"></td>
             <td th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
         </tr>
         </tbody>
     </table>
     <p th:if="${posts.isEmpty()}" th:text="#{label.empty}">등록된 게시글이 없습니다.</p>
+
+    <div th:if="${posts.totalPages > 1}">
+        <a th:if="${posts.hasPrevious()}"
+           th:href="@{/posts(page=${posts.number - 1})}"
+           th:text="#{button.prev}">이전</a>
+
+        <span th:each="i : ${#numbers.sequence(0, posts.totalPages - 1)}">
+            <a th:href="@{/posts(page=${i})}"
+               th:text="${i + 1}"
+               th:style="${i == post.number} ? 'front-weight:bold;' : ''"></a>
+        </span>
+
+        <a th:if="${posts.hasNext()}"
+           th:href="@{/posts(page=${posts.number + 1})}"
+           th:text="#{button.next}">다음</a>
+    </div>
+
     <a th:href="@{/posts/add}" th:text="#{button.add}">게시글 작성</a>
 </div>
 </body>
