@@ -36,29 +36,29 @@ class CommentRepositoryTest {
                 "댓글러",
                 null,
                 null);
-        Long memberId = memberRepository.save(member).getId();
+        Member savedMember = memberRepository.save(member);
 
         Post post = new Post(
                 null,
-                memberId,
+                savedMember,
                 "제목",
                 "내용",
                 null
         );
-        Long postId = postRepository.save(post).getId();
+        Post savedPost = postRepository.save(post);
 
         Comment comment = new Comment(
                 null,
-                postId,
-                memberId,
+                savedPost,
+                savedMember,
                 "댓글"
         );
         Long commentId = commentRepository.save(comment).getId();
 
         Comment foundComment = commentRepository.findById(commentId).get();
         assertThat(foundComment.getContent()).isEqualTo(comment.getContent());
-        assertThat(foundComment.getPostId()).isEqualTo(comment.getPostId());
-        assertThat(foundComment.getMemberId()).isEqualTo(comment.getMemberId());
+        assertThat(foundComment.getPost().getId()).isEqualTo(comment.getPost().getId());
+        assertThat(foundComment.getMember().getId()).isEqualTo(comment.getMember().getId());
     }
 
     @Test
@@ -66,19 +66,19 @@ class CommentRepositoryTest {
     void findByPostIdOrderedByOldest() {
         Member member = new Member(
                 null, "commenter2", "test1234!", "댓글러", null, null);
-        Long memberId = memberRepository.save(member).getId();
+        Member savedMember = memberRepository.save(member);
 
-        Post post = new Post(null, memberId, "제목", "내용", null);
-        Long postId = postRepository.save(post).getId();
+        Post post = new Post(null, savedMember, "제목", "내용", null);
+        Post savedPost = postRepository.save(post);
 
         Long firstCommentId = commentRepository.save(
-                new Comment(null, postId, memberId, "첫 댓글")).getId();
+                new Comment(null, savedPost, savedMember, "첫 댓글")).getId();
         Long secondCommentId = commentRepository.save(
-                new Comment(null, postId, memberId, "두번째 댓글")).getId();
+                new Comment(null, savedPost, savedMember, "두번째 댓글")).getId();
         Long thirdCommentId = commentRepository.save(
-                new Comment(null, postId, memberId, "세번째 댓글")).getId();
+                new Comment(null, savedPost, savedMember, "세번째 댓글")).getId();
 
-        List<Comment> comments = commentRepository.findByPostId(postId);
+        List<Comment> comments = commentRepository.findByPostId(savedPost.getId());
 
         // 같은 트랜잭션 내에서 지정되어 created_at이 동일할 수 있으므로,
         // comment_id 타이브레이커가 없다면 이 순서가 보장되지 않는다

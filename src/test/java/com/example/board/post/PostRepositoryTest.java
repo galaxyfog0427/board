@@ -28,12 +28,12 @@ class PostRepositoryTest {
     @Test
     void crud() {
         Member member = new Member(null, "postTester", "test1234!", "테스터", null, null);
-        Long memberId = memberRepository.save(member).getId();
+        Member savedMember = memberRepository.save(member);
 
         //create
         Post post = new Post(
                 null,
-                memberId,
+                savedMember,
                 "JDBC 게시글",
                 "순수 JDBC로 저장",
                 null
@@ -60,14 +60,14 @@ class PostRepositoryTest {
     @DisplayName("findAll()은 최신 게시글이 먼저 오도록 정렬한다")
     void findAllOrderedByLatest() {
         Member member = new Member(null, "listTester", "test1234!", "리스트테스트", null, null);
-        Long memberId = memberRepository.save(member).getId();
+        Member savedMember = memberRepository.save(member);
 
         Long firstPostId = postRepository.save(
-                new Post(null, memberId, "첫 번째 글", "내용1", null)).getId();
+                new Post(null, savedMember, "첫 번째 글", "내용1", null)).getId();
         Long secondPostId = postRepository.save(
-                new Post(null, memberId, "두 번째 글", "내용2", null)).getId();
+                new Post(null, savedMember, "두 번째 글", "내용2", null)).getId();
         Long thirdPostId = postRepository.save(
-                new Post(null, memberId, "세 번째 글", "내용3", null)).getId();
+                new Post(null, savedMember, "세 번째 글", "내용3", null)).getId();
 
         List<Post> posts = postRepository.findAll();
         assertThat(posts.get(0).getId()).isEqualTo(thirdPostId);
@@ -81,10 +81,10 @@ class PostRepositoryTest {
         long beforeCount = postRepository.count();
 
         Member member = new Member(null, "pageTester", "test1234!", "페이지테스터", null, null);
-        Long memberId = memberRepository.save(member).getId();
+        Member savedMember = memberRepository.save(member);
 
         for (int i = 1; i <= 15; i++) {
-            postRepository.save(new Post(null, memberId, "제목" + i, "내용" + i, null));
+            postRepository.save(new Post(null, savedMember, "제목" + i, "내용" + i, null));
         }
 
         Page<Post> firstPage = postRepository.findAll(
@@ -102,9 +102,9 @@ class PostRepositoryTest {
         long beforeCount = postRepository.count();
 
         Member member = new Member(null, "writerTester", "test1234!", "글쓴이", null, null);
-        Long memberId = memberRepository.save(member).getId();
+        Member savedMember = memberRepository.save(member);
 
-        Long savedPostId = postRepository.save(new Post(null, memberId, "title", "content", null)).getId();
+        Long savedPostId = postRepository.save(new Post(null, savedMember, "title", "content", null)).getId();
 
         Page<PostListItem> page = postRepository.findAllWithWriter(PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "id")));
 

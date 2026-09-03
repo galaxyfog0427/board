@@ -28,26 +28,26 @@ class CommentServiceTest {
     @Test
     @DisplayName("댓글 작성 성공시 카운트 증가")
     void commentCompleted() {
-        Long memberId = memberRepository.save(new Member(null, "writer1", "writer1!", "작성자1", null, null)).getId();
-        Long postId = postRepository.save(new Post(null, memberId, "제목", "내용", null)).getId();
+        Member savedMember = memberRepository.save(new Member(null, "writer1", "writer1!", "작성자1", null, null));
+        Post savedPost = postRepository.save(new Post(null, savedMember, "제목", "내용", null));
 
-        commentService.addComment(new Comment(null, postId, memberId, "정상 댓글"));
+        commentService.addComment(new Comment(null, savedPost, savedMember, "정상 댓글"));
 
-        Post foundPost = postRepository.findById(postId).get();
+        Post foundPost = postRepository.findById(savedPost.getId()).get();
         assertThat(foundPost.getCommentCount()).isOne();
     }
 
     @Test
     @DisplayName("댓글 작성 실패시 전체 롤백")
     void commentFailed() {
-        Long memberId = memberRepository.save(new Member(null, "writer2", "writer2!", "작성자2", null, null)).getId();
-        Long postId = postRepository.save(new Post(null, memberId, "제목", "내용", null)).getId();
+        Member savedMember = memberRepository.save(new Member(null, "writer2", "writer2!", "작성자2", null, null));
+        Post savedPost = postRepository.save(new Post(null, savedMember, "제목", "내용", null));
 
         assertThatThrownBy(() ->
-                commentService.addComment(new Comment(null, postId, memberId, "ROLLBACK_TEST"))
+                commentService.addComment(new Comment(null, savedPost, savedMember, "ROLLBACK_TEST"))
         ).isInstanceOf(IllegalStateException.class);
 
-        Post foundPost = postRepository.findById(postId).get();
+        Post foundPost = postRepository.findById(savedPost.getId()).get();
         assertThat(foundPost.getCommentCount()).isZero();
     }
 }

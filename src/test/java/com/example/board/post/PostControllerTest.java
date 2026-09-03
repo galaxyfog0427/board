@@ -9,8 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -79,15 +77,14 @@ class PostControllerTest {
     @Test
     @DisplayName("다른 회원이 작성한 게시글을 수정하려 하면 403이 발생한다")
     void editFormForbidden() throws Exception {
-        Long writerId = memberRepository.save(
-                new Member(null, "mockMvcWriter", "test1234!", "작성자", null, null)
-        ).getId();
+        Member writer = memberRepository.save(
+                new Member(null, "mockMvcWriter", "test1234!", "작성자", null, null));
         Long otherId = memberRepository.save(
                 new Member(null, "mockMvcOther", "test1234!", "다른사람", null, null)
         ).getId();
         Member otherMember = memberRepository.findById(otherId).get();
 
-        Post post = new Post(null, writerId, "title", "content", null);
+        Post post = new Post(null, writer, "title", "content", null);
         Long postId = postRepository.save(post).getId();
 
         mockMvc.perform(get("/posts/" + postId + "/edit")
