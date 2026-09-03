@@ -22,8 +22,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     void incrementCommentCount(@Param("postId") Long postId);
 
     @Query(value = """
-                select new com.example.board.post.PostListItem(p.id, p.title, m.nickname, p.commentCount, p.createdAt)
-                from Post p join Member m on p.memberId = m.id
+                select new com.example.board.post.PostListItem(p.id, p.title, p.member.nickname, p.commentCount, p.createdAt)
+                from Post p
             """,
             countQuery = "select count(p) from Post p")
     Page<PostListItem> findAllWithWriter(Pageable pageable);

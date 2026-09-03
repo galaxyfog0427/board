@@ -1,6 +1,7 @@
 package com.example.board.post;
 
 import com.example.board.common.BaseTimeEntity;
+import com.example.board.member.Member;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -13,7 +14,9 @@ public class Post extends BaseTimeEntity {
     @Column(name = "post_id")
     private Long id;
 
-    private Long memberId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")
+    private Member member;
     private String title;
     private String content;
     private Integer commentCount;
@@ -21,9 +24,9 @@ public class Post extends BaseTimeEntity {
     protected Post() {
     }
 
-    public Post(Long id, Long memberId, String title, String content, Integer commentCount) {
+    public Post(Long id, Member member, String title, String content, Integer commentCount) {
         this.id = id;
-        this.memberId = memberId;
+        this.member = member;
         this.title = title;
         this.content = content;
         this.commentCount = commentCount;
@@ -45,8 +48,8 @@ public class Post extends BaseTimeEntity {
         return id;
     }
 
-    public Long getMemberId() {
-        return memberId;
+    public Member getMember() {
+        return member;
     }
 
     public String getTitle() {
@@ -65,7 +68,6 @@ public class Post extends BaseTimeEntity {
     public String toString() {
         return "Post{" +
                 "id=" + id +
-                ", memberId=" + memberId +
                 ", title='" + title + '\'' +
                 ", commentCount=" + commentCount +
                 '}';

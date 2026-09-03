@@ -1,6 +1,8 @@
 package com.example.board.comment;
 
 import com.example.board.common.BaseTimeEntity;
+import com.example.board.member.Member;
+import com.example.board.post.Post;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -13,17 +15,22 @@ public class Comment extends BaseTimeEntity {
     @Column(name = "comment_id")
     private Long id;
 
-    private Long postId;
-    private Long memberId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "post_id")
+    private Post post;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")
+    private Member member;
     private String content;
 
     protected Comment() {
     }
 
-    public Comment(Long id, Long postId, Long memberId, String content) {
+    public Comment(Long id, Post post, Member member, String content) {
         this.id = id;
-        this.postId = postId;
-        this.memberId = memberId;
+        this.post = post;
+        this.member = member;
         this.content = content;
     }
 
@@ -31,25 +38,22 @@ public class Comment extends BaseTimeEntity {
         return id;
     }
 
-    public Long getPostId() {
-        return postId;
+    public Post getPost() {
+        return post;
     }
 
-    public Long getMemberId() {
-        return memberId;
+    public Member getMember() {
+        return member;
     }
 
     public String getContent() {
         return content;
     }
 
-
     @Override
     public String toString() {
         return "Comment{" +
                 "id=" + id +
-                ", postId=" + postId +
-                ", memberId=" + memberId +
                 ", content='" + content +
                 '}';
     }

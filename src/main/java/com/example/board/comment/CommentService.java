@@ -19,7 +19,7 @@ public class CommentService {
     public Long addComment(Comment comment) {
         Long commentId = commentRepository.save(comment).getId();
         validateForRollbackTest(comment);
-        postRepository.incrementCommentCount(comment.getPostId());
+        postRepository.incrementCommentCount(comment.getPost().getId());
         return commentId;
     }
 

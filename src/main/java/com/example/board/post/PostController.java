@@ -60,7 +60,7 @@ public class PostController {
     @GetMapping("/{postId}")
     public String detail(@PathVariable("postId") Long postId, Model model) {
         Post post = postService.getPost(postId);
-        Member writer = memberRepository.findById(post.getMemberId()).get();
+        Member writer = memberRepository.findById(post.getMember().getId()).get();
         List<Comment> comments = commentRepository.findByPostId(postId);
         List<PostFile> postFiles = postFileRepository.findByPostId(postId);
         model.addAttribute("post", post);
@@ -86,7 +86,7 @@ public class PostController {
 
         Post post = new Post(
                 null,
-                loginMember.getId(),
+                loginMember,
                 postSaveForm.getTitle(),
                 postSaveForm.getContent(),
                 null);
@@ -120,7 +120,7 @@ public class PostController {
                            Model model) {
         Post post = postService.getPost(postId);
 
-        if (!loginMember.getId().equals(post.getMemberId())) {
+        if (!loginMember.getId().equals(post.getMember().getId())) {
             throw new UnauthorizedPostAccessException("본인이 작성한 게시글만 수정할 수 있습니다.");
         }
 
@@ -142,7 +142,7 @@ public class PostController {
 
         Post post = postService.getPost(postId);
 
-        if (!loginMember.getId().equals(post.getMemberId())) {
+        if (!loginMember.getId().equals(post.getMember().getId())) {
             throw new UnauthorizedPostAccessException("본인이 작성한 게시글만 수정할 수 있습니다.");
         }
 
