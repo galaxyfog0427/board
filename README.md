@@ -186,6 +186,12 @@ CREATE TABLE post_file (
 - 모든 @ManyToOne에 fetch = LAZY 명시적으로 설정 (기본값 EAGER 회피)
 - 순수 JdbcTemplate 참고용 구현체(Post/Comment)는 생성자 시그니처 변경으로 삭제, Git 히스토리로 이력 보존
 
+#### REST API (학습용)
+- `/api/v1/posts`(목록), `/api/v1/posts/{id}`(상세) — 실제 화면에서 사용하지 않는 학습 목적의 엔드포인트, JPA 조회 성능 최적화 실습용
+- 응답을 `ApiResponse<T>`(success/data/message)로 통일, `Page`는 그대로 노출하지 않고 `PageResponse`로 변환해 API 스펙을 직접 통제
+- API 전용 예외 처리(`ApiExceptionHandler`)를 `com.example.board.api` 패키지로 스코프 분리
+- 댓글 상세 조회에서 작성자를 개별 지연 로딩으로 가져오며 N+1 발생을 직접 확인(SQL 로그로 post 1회 + 댓글 목록 1회 + 서로 다른 작성자 수만큼 추가 조회)
+
 ### 데이터베이스 설계
 - 개념적/논리적 모델링 설계 완료 (Member/Post/Comment 엔티티, 관계, 참여도, 식별 여부 확정)
 - 물리적 모델링 완료 (데이터 타입, 제약조건, 역정규화 확정)
