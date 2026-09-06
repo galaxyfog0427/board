@@ -14,7 +14,7 @@ public class PostService {
 
     @Transactional(readOnly = true)
     public Post getPost(Long postId) {
-        return postRepository.findById(postId)
+        return postRepository.findByIdWithMember(postId)
                 .orElseThrow(() -> new PostNotFoundException("존재하지 않는 게시글입니다."));
     }
 
