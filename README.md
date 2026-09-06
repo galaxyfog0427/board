@@ -192,6 +192,12 @@ CREATE TABLE post_file (
 - API 전용 예외 처리(`ApiExceptionHandler`)를 `com.example.board.api` 패키지로 스코프 분리
 - 댓글 상세 조회에서 작성자를 개별 지연 로딩으로 가져오며 N+1 발생을 직접 확인(SQL 로그로 post 1회 + 댓글 목록 1회 + 서로 다른 작성자 수만큼 추가 조회)
 
+#### 조회 성능 최적화 (N+1, fetch join, OSIV)
+- 학습용 API 상세 조회에서 댓글 작성자를 개별 지연 로딩하며 N+1을 직접 재현하고 SQL 로그로 확인
+- ToOne 관계(Post.member, Comment.member)에 fetch join을 적용해 쿼리 수를 최소화 (컬렉션이 아니므로 페이징에 영향 없음)
+- hibernate.default_batch_fetch_size를 전역 설정으로 추가해, fetch join을 걸지 않은 지연 로딩 지점에 대한 안전망 확보
+- spring.jpa.open-in-view=false로 전환 — 기존 fetch join 최적화 덕분에 추가 코드 변경 없이 정상 동작 확인
+
 ### 데이터베이스 설계
 - 개념적/논리적 모델링 설계 완료 (Member/Post/Comment 엔티티, 관계, 참여도, 식별 여부 확정)
 - 물리적 모델링 완료 (데이터 타입, 제약조건, 역정규화 확정)
