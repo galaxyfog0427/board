@@ -39,3 +39,5 @@ out/
 files/
 
 repomix-output.xml
+
+src/main/generated/
