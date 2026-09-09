@@ -198,6 +198,12 @@ CREATE TABLE post_file (
 - hibernate.default_batch_fetch_size를 전역 설정으로 추가해, fetch join을 걸지 않은 지연 로딩 지점에 대한 안전망 확보
 - spring.jpa.open-in-view=false로 전환 — 기존 fetch join 최적화 덕분에 추가 코드 변경 없이 정상 동작 확인
 
+#### Querydsl 도입
+- 유지보수가 멈춘 원본 com.querydsl 대신 활발히 관리되는 OpenFeign 포크(io.github.openfeign.querydsl) 사용
+- PostRepositoryCustom/PostRepositoryImpl 패턴으로 스프링 데이터 JPA와 연동 (이름 규칙: `<Repository명>Impl`)
+- 게시글 제목/작성자 닉네임을 선택적으로 조합 검색 가능한 동적 쿼리 구현 (Where 다중 파라미터 방식)
+- 검색 조건에 따라 count 쿼리의 join 여부를 다르게 해 불필요한 조인 비용 최적화
+
 ### 데이터베이스 설계
 - 개념적/논리적 모델링 설계 완료 (Member/Post/Comment 엔티티, 관계, 참여도, 식별 여부 확정)
 - 물리적 모델링 완료 (데이터 타입, 제약조건, 역정규화 확정)

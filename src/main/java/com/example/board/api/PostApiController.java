@@ -4,10 +4,7 @@ import com.example.board.comment.Comment;
 import com.example.board.comment.CommentRepository;
 import com.example.board.common.ApiResponse;
 import com.example.board.common.PageResponse;
-import com.example.board.post.Post;
-import com.example.board.post.PostListItem;
-import com.example.board.post.PostRepository;
-import com.example.board.post.PostService;
+import com.example.board.post.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -61,5 +58,13 @@ public class PostApiController {
         );
 
         return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<PageResponse<PostListItem>>> search(
+            PostSearchCondition condition,
+            @PageableDefault(size = 10, sort = {"createdAt", "id"}, direction = Sort.Direction.DESC) Pageable pageable) {
+        Page<PostListItem> posts = postRepository.search(condition, pageable);
+        return ResponseEntity.ok(ApiResponse.success(PageResponse.from(posts)));
     }
 }
