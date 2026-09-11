@@ -21,6 +21,9 @@ public class Post extends BaseTimeEntity {
     private String content;
     private Integer commentCount;
 
+    @Version
+    private Long version;
+
     protected Post() {
     }
 
@@ -62,6 +65,10 @@ public class Post extends BaseTimeEntity {
 
     public Integer getCommentCount() {
         return commentCount;
+    }
+
+    public Long getVersion() {
+        return version;
     }
 
     @Override

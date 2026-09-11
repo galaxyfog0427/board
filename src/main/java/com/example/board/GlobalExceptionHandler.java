@@ -1,5 +1,6 @@
 package com.example.board;
 
+import com.example.board.post.PostEditConflictException;
 import com.example.board.post.PostNotFoundException;
 import com.example.board.post.UnauthorizedPostAccessException;
 import lombok.extern.slf4j.Slf4j;
@@ -27,4 +28,13 @@ public class GlobalExceptionHandler {
         mav.setStatus(HttpStatus.FORBIDDEN);
         return mav;
     }
+
+    @ExceptionHandler
+    public ModelAndView handlePostEditConflict(PostEditConflictException e) {
+        log.warn("[PostEditConflictException] {}", e.getMessage());
+        ModelAndView mv = new ModelAndView("error/conflict");
+        mv.addObject("message", e.getMessage());
+        return mv;
+    }
 }
+

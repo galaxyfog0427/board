@@ -204,6 +204,11 @@ CREATE TABLE post_file (
 - 게시글 제목/작성자 닉네임을 선택적으로 조합 검색 가능한 동적 쿼리 구현 (Where 다중 파라미터 방식)
 - 검색 조건에 따라 count 쿼리의 join 여부를 다르게 해 불필요한 조인 비용 최적화
 
+#### 동시성 제어 (낙관적 락)
+- 게시글 동시 수정 시 Lost Update가 발생할 수 있음을 확인, `@Version` 기반 낙관적 락으로 해결
+- 더티 체킹으로 인한 UPDATE는 트랜잭션 종료 시점에 실행되므로, `editPost()` 내에서 명시적 `flush()`를 호출해 충돌을 그 자리에서 감지
+- `ObjectOptimisticLockingFailureException`을 `PostEditConflictException`으로 변환해 일관된 예외 처리 유지
+
 ### 데이터베이스 설계
 - 개념적/논리적 모델링 설계 완료 (Member/Post/Comment 엔티티, 관계, 참여도, 식별 여부 확정)
 - 물리적 모델링 완료 (데이터 타입, 제약조건, 역정규화 확정)

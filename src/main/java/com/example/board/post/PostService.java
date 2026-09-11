@@ -1,5 +1,6 @@
 package com.example.board.post;
 
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +28,11 @@ public class PostService {
     public void editPost(Long postId, String title, String content) {
         Post post = getPost(postId);
         post.changeTitleAndContent(title, content);
+        try {
+            postRepository.flush();
+        } catch (ObjectOptimisticLockingFailureException e) {
+            throw new PostEditConflictException("다른 사용자가 이미 이 게시글을 수정했습니다. 새로고침 후 다시 시도해주세요.");
+        }
     }
 
 }
