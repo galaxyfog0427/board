@@ -1,5 +1,6 @@
 package com.example.board.post;
 
+import com.example.board.login.MemberDetails;
 import com.example.board.login.SessionConst;
 import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
@@ -11,6 +12,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -41,7 +43,7 @@ class PostControllerTest {
     void addFormWithoutLogin() throws Exception {
         mockMvc.perform(get("/posts/add"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/login?redirectURL=/posts/add"));
+                .andExpect(redirectedUrl("/login"));
     }
 
     @Test
@@ -53,7 +55,7 @@ class PostControllerTest {
         Member loginMember = memberRepository.findById(memberId).get();
 
         mockMvc.perform(get("/posts/add")
-                        .sessionAttr(SessionConst.LOGIN_MEMBER, loginMember))
+                        .with(user(new MemberDetails(loginMember))))
                 .andExpect(status().isOk())
                 .andExpect(view().name("post/addForm"));
     }
@@ -67,7 +69,7 @@ class PostControllerTest {
         Member loginMember = memberRepository.findById(memberId).get();
 
         mockMvc.perform(post("/posts/add")
-                        .sessionAttr(SessionConst.LOGIN_MEMBER, loginMember)
+                        .with(user(new MemberDetails(loginMember)))
                         .param("title", "목 테스트 제목")
                         .param("content", "목 테스트 내용"))
                 .andExpect(status().is3xxRedirection())
@@ -88,7 +90,7 @@ class PostControllerTest {
         Long postId = postRepository.save(post).getId();
 
         mockMvc.perform(get("/posts/" + postId + "/edit")
-                        .sessionAttr(SessionConst.LOGIN_MEMBER, otherMember))
+                        .with(user(new MemberDetails(otherMember))))
                 .andExpect(status().isForbidden());
     }
 }

@@ -9,6 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
+import org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -17,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -31,42 +35,43 @@ class LoginControllerTest {
     @Autowired
     MemberRepository memberRepository;
 
+    @Autowired
+    PasswordEncoder passwordEncoder;
+
     @Test
-    @DisplayName("로그인 성공 시 세선에 회원 정보가 저장되고 redirectURL로 이동한다")
+    @DisplayName("로그인 성공 시 인증되고 게시글 목록으로 이동한다")
     void loginSuccess() throws Exception {
-        memberRepository.save(
-                new Member(null, "loginMockTester", "test1234!", "tester", null, null)
-        );
+        memberRepository.save(new Member(
+                        null,
+                        "loginTester",
+                        passwordEncoder.encode("test1234!"),
+                        "로그인테스터",
+                        null, null));
 
-        MvcResult result = mockMvc.perform(post("/login")
-                        .param("loginId", "loginMockTester")
-                        .param("password", "test1234!")
-                        .param("redirectURL", "/posts/add"))
+        mockMvc.perform(post("/login")
+                        .param("loginId", "loginTester")
+                        .param("password", "test1234!"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/posts/add"))
-                .andReturn();
-
-        MockHttpSession session = (MockHttpSession) result.getRequest().getSession(false);
-        assertThat(session).isNotNull();
-        assertThat(session.getAttribute(SessionConst.LOGIN_MEMBER)).isNotNull();
+                .andExpect(redirectedUrl("/posts"))
+                .andExpect(authenticated().withUsername("loginTester"));
     }
 
     @Test
-    @DisplayName("비밀번호가 틀리면 로그인 폼으로 되돌아가고 세션이 생성되지 않는다")
+    @DisplayName("비밀번호가 틀리면 로그인 폼으로 되돌아가고 인증되지 않는다")
     void loginFail() throws Exception {
-        memberRepository.save(
-                new Member(null, "loginMockTester", "test1234!", "tester", null, null)
-        );
+        memberRepository.save(new Member(
+                null,
+                "loginTester2",
+                passwordEncoder.encode("test1234!"),
+                "로그인테스터",
+                null, null));
 
-        MvcResult result = mockMvc.perform(post("/login")
-                        .param("loginId", "loginMockTester")
-                        .param("password", "test5678!"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("login/loginForm"))
-                .andReturn();
-
-        MockHttpSession session = (MockHttpSession) result.getRequest().getSession(false);
-        assertThat(session).isNull();
+        mockMvc.perform(post("/login")
+                        .param("loginId", "loginTester2")
+                        .param("password", "wrongPassword"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login?error"))
+                .andExpect(unauthenticated());
     }
 
 }

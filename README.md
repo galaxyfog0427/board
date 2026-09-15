@@ -209,6 +209,19 @@ CREATE TABLE post_file (
 - 더티 체킹으로 인한 UPDATE는 트랜잭션 종료 시점에 실행되므로, `editPost()` 내에서 명시적 `flush()`를 호출해 충돌을 그 자리에서 감지
 - `ObjectOptimisticLockingFailureException`을 `PostEditConflictException`으로 변환해 일관된 예외 처리 유지
 
+#### Spring Security 도입
+- 스프링 시큐리티 초기화 구조(SecurityBuilder, WebSecurity, FilterChainProxy, DelegatingFilterProxy) 학습
+- 인증 프로세스(폼 인증, 기본 인증, RememberMe, 익명 인증, 로그아웃, 요청 캐시) 및 각 필터의 역할 학습
+- 인증 아키텍처(Authentication, SecurityContext, AuthenticationManager, AuthenticationProvider, UserDetailsService) 학습
+- 세션 기반 수동 인증(HttpSession, LoginCheckInterceptor)을 Spring Security로 전면 전환
+- `CustomUserDetailsService`/`MemberDetails`로 UserDetailsService 커스터마이징 - Member 도메인 객체를 UserDetails 규격에 맞게 어댑팅
+- BCryptPasswordEncoder 적용, 회원가입 시 비밀번호 암호화 저장
+- `formLogin()`/`logout()`으로 로그인·로그아웃 처리를 필터 체인에 위임, 컨트롤러의 수동 세션 생성 로직 제거
+- 손으로 관리하던 `redirectURL` 파라미터를 RequestCache/SavedRequest 표준 메커니즘으로 대체
+- `authorizeHttpRequests()`로 인가 로직을 인터셉터 대신 SecurityFilterChain으로 이전
+- 컨트롤러의 `@SessionAttribute` 기반 로그인 회원 조회를 `@AuthenticationPrincipal`로 전환
+- MockMvc 테스트를 spring-security-test(`user()`, `authenticated()`/`unauthenticated()`) 기반으로 재작성
+
 ### 데이터베이스 설계
 - 개념적/논리적 모델링 설계 완료 (Member/Post/Comment 엔티티, 관계, 참여도, 식별 여부 확정)
 - 물리적 모델링 완료 (데이터 타입, 제약조건, 역정규화 확정)

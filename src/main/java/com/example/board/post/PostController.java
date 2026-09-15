@@ -4,13 +4,14 @@ import com.example.board.comment.Comment;
 import com.example.board.comment.CommentRepository;
 import com.example.board.file.FileStore;
 import com.example.board.file.UploadFile;
-import com.example.board.login.SessionConst;
+import com.example.board.login.MemberDetails;
 import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -48,12 +49,12 @@ public class PostController {
     }
 
     @GetMapping
-    public String list(@SessionAttribute(name = SessionConst.LOGIN_MEMBER, required = false) Member loginMember,
+    public String list(@AuthenticationPrincipal MemberDetails memberDetails,
                        @PageableDefault(size = 10, sort = {"createdAt", "id"}, direction = Sort.Direction.DESC) Pageable pageable,
                        Model model) {
         Page<PostListItem> posts = postRepository.findAllWithWriter(pageable);
         model.addAttribute("posts", posts);
-        model.addAttribute("loginMember", loginMember);
+        model.addAttribute("loginMember", memberDetails != null ? memberDetails.getMember() : null);
         return "post/list";
     }
 
@@ -78,7 +79,7 @@ public class PostController {
 
     @PostMapping("/add")
     public String save(@Validated @ModelAttribute PostSaveForm postSaveForm, BindingResult bindingResult,
-                       @SessionAttribute(SessionConst.LOGIN_MEMBER) Member loginMember, RedirectAttributes redirectAttributes) throws IOException {
+                       @AuthenticationPrincipal MemberDetails memberDetails, RedirectAttributes redirectAttributes) throws IOException {
 
         if (bindingResult.hasErrors()) {
             return "post/addForm";
@@ -86,7 +87,7 @@ public class PostController {
 
         Post post = new Post(
                 null,
-                loginMember,
+                memberDetails.getMember(),
                 postSaveForm.getTitle(),
                 postSaveForm.getContent(),
                 null);
@@ -116,11 +117,11 @@ public class PostController {
 
     @GetMapping("/{postId}/edit")
     public String editForm(@PathVariable("postId") Long postId,
-                           @SessionAttribute(SessionConst.LOGIN_MEMBER) Member loginMember,
+                           @AuthenticationPrincipal MemberDetails memberDetails,
                            Model model) {
         Post post = postService.getPost(postId);
 
-        if (!loginMember.getId().equals(post.getMember().getId())) {
+        if (!memberDetails.getMember().getId().equals(post.getMember().getId())) {
             throw new UnauthorizedPostAccessException("본인이 작성한 게시글만 수정할 수 있습니다.");
         }
 
@@ -137,12 +138,12 @@ public class PostController {
     public String edit(@PathVariable("postId") Long postId,
                        @Validated @ModelAttribute PostEditForm postEditForm,
                        BindingResult bindingResult,
-                       @SessionAttribute(SessionConst.LOGIN_MEMBER) Member loginMember,
+                       @AuthenticationPrincipal MemberDetails memberDetails,
                        Model model) {
 
         Post post = postService.getPost(postId);
 
-        if (!loginMember.getId().equals(post.getMember().getId())) {
+        if (!memberDetails.getMember().getId().equals(post.getMember().getId())) {
             throw new UnauthorizedPostAccessException("본인이 작성한 게시글만 수정할 수 있습니다.");
         }
 
