@@ -70,6 +70,7 @@ class PostControllerTest {
 
         mockMvc.perform(post("/posts/add")
                         .with(user(new MemberDetails(loginMember)))
+                        .with(csrf())
                         .param("title", "목 테스트 제목")
                         .param("content", "목 테스트 내용"))
                 .andExpect(status().is3xxRedirection())

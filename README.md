@@ -221,6 +221,8 @@ CREATE TABLE post_file (
 - `authorizeHttpRequests()`로 인가 로직을 인터셉터 대신 SecurityFilterChain으로 이전
 - 컨트롤러의 `@SessionAttribute` 기반 로그인 회원 조회를 `@AuthenticationPrincipal`로 전환
 - MockMvc 테스트를 spring-security-test(`user()`, `authenticated()`/`unauthenticated()`) 기반으로 재작성
+- 세션 관리(동시 세션 제어, 세션 고정 보호) 학습 - 동시 세션 제어는 게시판 성격상 불필요하다고 판단해 미적용, 세션 고정 보호는 기본 활성화된 채로 유지
+- CSRF 보호 활성화 - Thymeleaf의 자동 hidden 토큰 삽입 활용, MockMvc 테스트는 spring-security-test의 csrf()로 대응
 
 ### 데이터베이스 설계
 - 개념적/논리적 모델링 설계 완료 (Member/Post/Comment 엔티티, 관계, 참여도, 식별 여부 확정)

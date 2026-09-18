@@ -5,9 +5,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -26,6 +28,7 @@ class MemberControllerTest {
     @DisplayName("정상적인 회원가입은 로그인 페이지로 리다이렉트된다")
     void joinSuccess() throws Exception {
         mockMvc.perform(post("/members/add")
+                        .with(csrf())
                         .param("loginId", "newJoiner")
                         .param("password", "test1234!")
                         .param("nickname", "tester"))
@@ -41,6 +44,7 @@ class MemberControllerTest {
         );
 
         mockMvc.perform(post("/members/add")
+                        .with(csrf())
                         .param("loginId", "duplicatedId")
                         .param("password", "test5678!")
                         .param("nickname", "나중가입"))
@@ -53,6 +57,7 @@ class MemberControllerTest {
     @DisplayName("필수값 누락 시 폼으로 되돌아간다")
     void joinBlankTitle() throws Exception {
         mockMvc.perform(post("/members/add")
+                        .with(csrf())
                         .param("loginId", "")
                         .param("password", "test1234!")
                         .param("nickname", "tester"))

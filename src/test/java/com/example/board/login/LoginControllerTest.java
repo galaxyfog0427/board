@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -49,6 +50,7 @@ class LoginControllerTest {
                         null, null));
 
         mockMvc.perform(post("/login")
+                        .with(csrf())
                         .param("loginId", "loginTester")
                         .param("password", "test1234!"))
                 .andExpect(status().is3xxRedirection())
@@ -67,6 +69,7 @@ class LoginControllerTest {
                 null, null));
 
         mockMvc.perform(post("/login")
+                        .with(csrf())
                         .param("loginId", "loginTester2")
                         .param("password", "wrongPassword"))
                 .andExpect(status().is3xxRedirection())
