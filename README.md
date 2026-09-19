@@ -223,6 +223,8 @@ CREATE TABLE post_file (
 - MockMvc 테스트를 spring-security-test(`user()`, `authenticated()`/`unauthenticated()`) 기반으로 재작성
 - 세션 관리(동시 세션 제어, 세션 고정 보호) 학습 - 동시 세션 제어는 게시판 성격상 불필요하다고 판단해 미적용, 세션 고정 보호는 기본 활성화된 채로 유지
 - CSRF 보호 활성화 - Thymeleaf의 자동 hidden 토큰 삽입 활용, MockMvc 테스트는 spring-security-test의 csrf()로 대응
+- OAuth2/OpenID Connect 개념 학습(4대 역할, Authorization Code Grant 흐름, Access/ID Token 구분, OAuth2UserService의 UserDetailsService 대응 구조)
+- 실제 소셜 로그인은 회원 스키마 변경(비밀번호 nullable화 등) 비용 대비 실익이 낮다고 판단해 board엔 미적용, 개념 이해까지만 진행
 
 ### 데이터베이스 설계
 - 개념적/논리적 모델링 설계 완료 (Member/Post/Comment 엔티티, 관계, 참여도, 식별 여부 확정)
