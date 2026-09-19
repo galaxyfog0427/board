@@ -2,6 +2,63 @@
 
 Spring Boot와 MySQL을 사용해 백엔드 기본기를 학습하기 위한 게시판 프로젝트입니다.
 
+![Java](https://img.shields.io/badge/Java-17-orange)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.0-brightgreen)
+![MySQL](https://img.shields.io/badge/MySQL-8-blue)
+![Spring Security](https://img.shields.io/badge/Spring%20Security-enabled-brightgreen)
+![JPA](https://img.shields.io/badge/JPA-Querydsl-lightgrey)
+
+## 한눈에 보기
+
+세션 기반 인증 + JPA + Querydsl로 구성된 SSR 게시판입니다. 각 Phase마다 "왜 이 기술을, 왜 이 방식으로" 도입했는지 판단 근거를 남기는 것을 원칙으로 진행했습니다.
+
+### 핵심 아키텍처 결정
+
+- **세션 기반 인증 유지 + Spring Security 표준 필터 체인 도입** — SSR 구조에는 JWT보다 세션이 적합하다고 판단, 학습용 REST API(`/api/v1/posts`)에는 추후 JWT를 별도 SecurityFilterChain으로 도입 예정
+- **Repository 인터페이스/구현체 분리 설계**로 JDBC → JPA 전환을 Controller/Service 코드 변경 없이 구현체 교체만으로 수행
+- **N+1 문제**를 ToOne 관계 fetch join + `default_batch_fetch_size` 안전망으로 해결하고, `open-in-view=false`로 지연 로딩 위험 제거
+- **게시글 동시 수정 충돌**을 낙관적 락(`@Version`)으로 제어, 더티 체킹 타이밍 문제는 명시적 `flush()`로 해결
+- **CSRF는 활성화**하되, WebFlux·HTTP Basic·동시 세션 제어·OAuth2 소셜 로그인 등은 게시판 규모 대비 실익이 낮다고 판단해 의도적으로 배제
+
+### ERD
+
+```mermaid
+erDiagram
+    MEMBER ||--o{ POST : writes
+    MEMBER ||--o{ COMMENT : writes
+    POST ||--o{ COMMENT : has
+    POST ||--o{ POST_FILE : has
+
+    MEMBER {
+        bigint member_id PK
+        varchar login_id
+        varchar password
+        varchar nickname
+        varchar status
+        datetime withdrawn_at
+    }
+    POST {
+        bigint post_id PK
+        bigint member_id FK
+        varchar title
+        text content
+        int comment_count
+    }
+    COMMENT {
+        bigint comment_id PK
+        bigint post_id FK
+        bigint member_id FK
+        varchar content
+    }
+    POST_FILE {
+        bigint file_id PK
+        bigint post_id FK
+        varchar upload_file_name
+        varchar store_file_name
+        bigint file_size
+    }
+```
+---
 
 ## Post 테이블
 | 컬럼 | 타입 | 설명 |
