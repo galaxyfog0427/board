@@ -19,6 +19,8 @@ public class Post extends BaseTimeEntity {
     private Member member;
     private String title;
     private String content;
+
+    @Column(updatable = false)
     private Integer commentCount;
 
     @Version
