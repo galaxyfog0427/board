@@ -33,7 +33,7 @@ public class ViewCountService {
             Double score = redisTemplate.opsForZSet().score(RedisKeys.pendingViews(), String.valueOf(postId));
             return score == null ? 0L : score.longValue();
         } catch (DataAccessException e) {
-            log.warn("[조회수 조회 실패] postId={}", postId, e);
+            log.warn("[조회수 조회 실패] postId={}, cause={}", postId, e.getMessage());
             return 0L;
         }
     }
@@ -45,7 +45,7 @@ public class ViewCountService {
                 redisTemplate.opsForZSet().incrementScore(RedisKeys.pendingViews(), String.valueOf(postId), 1);
             }
         } catch (DataAccessException e) {
-            log.warn("[조회수 증가 실패] postId={}", postId, e);
+            log.warn("[조회수 증가 실패] postId={}, cause={}", postId, e.getMessage());
         }
     }
 }
