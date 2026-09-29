@@ -23,6 +23,9 @@ public class Post extends BaseTimeEntity {
     @Column(updatable = false)
     private Integer commentCount;
 
+    @Column(updatable = false)
+    private Long viewCount;
+
     @Version
     private Long version;
 
@@ -41,6 +44,9 @@ public class Post extends BaseTimeEntity {
     void prePersist() {
         if (this.commentCount == null) {
             this.commentCount = 0;
+        }
+        if (this.viewCount == null) {
+            this.viewCount = 0L;
         }
     }
 
@@ -67,6 +73,10 @@ public class Post extends BaseTimeEntity {
 
     public Integer getCommentCount() {
         return commentCount;
+    }
+
+    public Long getViewCount() {
+        return viewCount;
     }
 
     public Long getVersion() {
