@@ -36,7 +36,7 @@ class ViewCountServiceTest {
 
     @Test
     @DisplayName("같은 회원이 여러 번 조회해도 한 번만 증가한다")
-    void sameMemberCountedOne() {
+    void sameMemberCountedOnce() {
         viewCountService.increaseForMember(POST_ID, 7L);
         viewCountService.increaseForMember(POST_ID, 7L);
         viewCountService.increaseForMember(POST_ID, 7L);

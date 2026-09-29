@@ -1,17 +1,28 @@
 package com.example.board.post;
 
+import com.example.board.common.RedisKeys;
+import com.example.board.common.VisitorCookieManager;
 import com.example.board.login.MemberDetails;
 import com.example.board.login.SessionConst;
 import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
+import jakarta.servlet.http.Cookie;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -29,6 +40,19 @@ class PostControllerTest {
 
     @Autowired
     PostRepository postRepository;
+
+    @Autowired
+    StringRedisTemplate redisTemplate;
+
+    List<String> redisKeysToDelete = new ArrayList<>();
+    @Autowired
+    private ViewCountService viewCountService;
+
+    @AfterEach
+    void cleanUpRedis() {
+        redisKeysToDelete.add(RedisKeys.pendingViews());
+        redisTemplate.delete(redisKeysToDelete);
+    }
 
     @Test
     @DisplayName("게시글 목록 조회는 로그인 없어도 200 응답과 목록 화면을 반환한다")
@@ -93,5 +117,56 @@ class PostControllerTest {
         mockMvc.perform(get("/posts/" + postId + "/edit")
                         .with(user(new MemberDetails(otherMember))))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("비회원이 상세 조회하면 visitor 쿠키가 발급되고, 같은 쿠키로 재조회해도 조회수는 1이다")
+    void anonymousViewCountedOnce() throws Exception {
+        Member writer = memberRepository.save(
+                new Member(null, "viewWriter", "test1234!", "조회작성자", null, null)
+        );
+        Long postId = postRepository.save(
+                new Post(null, writer, "title", "content", null)
+        ).getId();
+
+        MvcResult result = mockMvc.perform(get("/posts/" + postId))
+                .andExpect(status().isOk())
+                .andExpect(cookie().exists(VisitorCookieManager.COOKIE_NAME))
+                .andExpect(model().attribute("viewCount", 1L))
+                .andReturn();
+
+        Cookie visitorCookie = result.getResponse().getCookie(VisitorCookieManager.COOKIE_NAME);
+        redisKeysToDelete.add(RedisKeys.viewDedupForVisitor(postId, visitorCookie.getValue()));
+
+        mockMvc.perform(get("/posts/" + postId).cookie(visitorCookie))
+                .andExpect(status().isOk())
+                .andExpect(cookie().doesNotExist(VisitorCookieManager.COOKIE_NAME))
+                .andExpect(model().attribute("viewCount", 1L));
+    }
+
+    @Test
+    @DisplayName("로그인 회원은 visitor 쿠키 없이 회원 기준으로 조회수가 증가한다")
+    void memberViewCounted() throws Exception {
+        Member writer = memberRepository.save(
+                new Member(null, "viewWriter2", "test1234!", "조회작성자2", null, null)
+        );
+        Long postId = postRepository.save(
+                new Post(null, writer, "title", "content", null)
+        ).getId();
+        redisKeysToDelete.add(RedisKeys.viewDedupForMember(postId, writer.getId()));
+
+        mockMvc.perform(get("/posts/" + postId).with(user(new MemberDetails(writer))))
+                .andExpect(status().isOk())
+                .andExpect(cookie().doesNotExist(VisitorCookieManager.COOKIE_NAME))
+                .andExpect(model().attribute("viewCount", 1L));
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 게시글은 404이고 Redis에 아무것도 남기지 않는다")
+    void notFoundPostLeavesNothingInRedis() throws Exception {
+        mockMvc.perform(get("/posts/999999999999999"))
+                .andExpect(status().isNotFound());
+
+        assertThat(redisTemplate.opsForZSet().score(RedisKeys.pendingViews(), "999999999999999"));
     }
 }

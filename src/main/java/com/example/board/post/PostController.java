@@ -2,11 +2,14 @@ package com.example.board.post;
 
 import com.example.board.comment.Comment;
 import com.example.board.comment.CommentRepository;
+import com.example.board.common.VisitorCookieManager;
 import com.example.board.file.FileStore;
 import com.example.board.file.UploadFile;
 import com.example.board.login.MemberDetails;
 import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -33,19 +36,25 @@ public class PostController {
     private final PostFileRepository postFileRepository;
     private final FileStore fileStore;
     private final PostService postService;
+    private final ViewCountService viewCountService;
+    private final VisitorCookieManager visitorCookieManager;
 
     public PostController(PostRepository postRepository,
                           CommentRepository commentRepository,
                           MemberRepository memberRepository,
                           PostFileRepository postFileRepository,
                           FileStore fileStore,
-                          PostService postService) {
+                          PostService postService,
+                          ViewCountService viewCountService,
+                          VisitorCookieManager visitorCookieManager) {
         this.postRepository = postRepository;
         this.commentRepository = commentRepository;
         this.memberRepository = memberRepository;
         this.postFileRepository = postFileRepository;
         this.fileStore = fileStore;
         this.postService = postService;
+        this.viewCountService = viewCountService;
+        this.visitorCookieManager = visitorCookieManager;
     }
 
     @GetMapping
@@ -59,13 +68,26 @@ public class PostController {
     }
 
     @GetMapping("/{postId}")
-    public String detail(@PathVariable("postId") Long postId, Model model) {
+    public String detail(@PathVariable("postId") Long postId,
+                         @AuthenticationPrincipal MemberDetails memberDetails,
+                         HttpServletRequest request,
+                         HttpServletResponse response,
+                         Model model) {
         Post post = postService.getPost(postId);
+
+        if (memberDetails != null) {
+            viewCountService.increaseForMember(postId, memberDetails.getMember().getId());
+        } else {
+            viewCountService.increaseForVisitor(postId, visitorCookieManager.getOrIssue(request, response));
+        }
+        long viewCount = post.getViewCount() + viewCountService.getPendingCount(postId);
+
         Member writer = memberRepository.findById(post.getMember().getId()).get();
         List<Comment> comments = commentRepository.findByPostId(postId);
         List<PostFile> postFiles = postFileRepository.findByPostId(postId);
         model.addAttribute("post", post);
         model.addAttribute("writer", writer);
+        model.addAttribute("viewCount", viewCount);
         model.addAttribute("comments", comments);
         model.addAttribute("postFiles", postFiles);
         return "post/detail";

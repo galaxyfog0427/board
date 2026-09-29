@@ -10,6 +10,7 @@
     <p th:text="${'작성자: ' + writer.nickname}"></p>
     <p th:text="${post.content}"></p>
     <p><span th:text="#{post.createdAt}"></span>: <span th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}"></span></p>
+    <p><span th:text="#{post.viewCount}"></span>: <span th:text="${viewCount}"></span></p>
 
     <a th:href="@{/posts/{postId}/edit(postId=${post.id})}" th:text="#{button.edit}">수정</a>
     <a th:href="@{/posts}" th:text="#{button.list}">목록으로</a>
