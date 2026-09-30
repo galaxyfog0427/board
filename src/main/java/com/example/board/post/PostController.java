@@ -62,6 +62,7 @@ public class PostController {
                        @PageableDefault(size = 10, sort = {"createdAt", "id"}, direction = Sort.Direction.DESC) Pageable pageable,
                        Model model) {
         Page<PostListItem> posts = postRepository.findAllWithWriter(pageable);
+        viewCountService.applyPendingView(posts.getContent());
         model.addAttribute("posts", posts);
         model.addAttribute("loginMember", memberDetails != null ? memberDetails.getMember() : null);
         return "post/list";

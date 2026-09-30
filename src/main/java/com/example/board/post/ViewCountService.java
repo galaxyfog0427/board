@@ -7,6 +7,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -35,6 +36,28 @@ public class ViewCountService {
         } catch (DataAccessException e) {
             log.warn("[조회수 조회 실패] postId={}, cause={}", postId, e.getMostSpecificCause().getMessage());
             return 0L;
+        }
+    }
+
+    public void applyPendingView(List<PostListItem> items) {
+        if (items.isEmpty()) {
+            return;
+        }
+
+        try {
+            Object[] members = items.stream()
+                    .map(item -> String.valueOf(item.getId()))
+                    .toArray();
+            List<Double> scores = redisTemplate.opsForZSet().score(RedisKeys.pendingViews(), members);
+
+            for (int i = 0; i < items.size(); i++) {
+                Double score = scores.get(i);
+                if (score != null) {
+                    items.get(i).addPendingViews(score.longValue());
+                }
+            }
+        } catch (DataAccessException e) {
+            log.warn("[목록 조회수 조회 실패] cause={}", e.getMostSpecificCause().getMessage());
         }
     }
 

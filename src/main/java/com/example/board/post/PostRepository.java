@@ -23,7 +23,7 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostRepositor
     void incrementCommentCount(@Param("postId") Long postId);
 
     @Query(value = """
-                select new com.example.board.post.PostListItem(p.id, p.title, p.member.nickname, p.commentCount, p.createdAt)
+                select new com.example.board.post.PostListItem(p.id, p.title, p.member.nickname, p.commentCount, p.viewCount, p.createdAt)
                 from Post p
             """,
             countQuery = "select count(p) from Post p")

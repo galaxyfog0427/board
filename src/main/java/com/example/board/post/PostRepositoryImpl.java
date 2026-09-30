@@ -28,7 +28,7 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
     public Page<PostListItem> search(PostSearchCondition condition, Pageable pageable) {
         List<PostListItem> content = queryFactory
                 .select(Projections.constructor(PostListItem.class,
-                        post.id, post.title, member.nickname, post.commentCount, post.createdAt))
+                        post.id, post.title, member.nickname, post.commentCount, post.viewCount, post.createdAt))
                 .from(post)
                 .join(post.member, member)
                 .where(

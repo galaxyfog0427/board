@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
@@ -67,5 +68,28 @@ class ViewCountServiceTest {
     @DisplayName("조회 기록이 없는 게시글의 대기 조회수는 0이다")
     void noPendingViews() {
         assertThat(viewCountService.getPendingCount(999L)).isZero();
+    }
+
+    @Test
+    @DisplayName("목록의 각 게시글에 대기 중인 조회수를 한 번에 더한다")
+    void applyPendingViews() {
+        redisTemplate.opsForZSet().incrementScore(RedisKeys.pendingViews(), "1", 3);
+        redisTemplate.opsForZSet().incrementScore(RedisKeys.pendingViews(), "3", 5);
+
+        PostListItem item1 = new PostListItem(1L, "t1", "writer", 0, 10L, LocalDateTime.now());
+        PostListItem item2 = new PostListItem(2L, "t2", "writer", 0, 7L, LocalDateTime.now());
+        PostListItem item3 = new PostListItem(3L, "t3", "writer", 0, 0L, LocalDateTime.now());
+
+        viewCountService.applyPendingView(List.of(item1, item2, item3));
+
+        assertThat(item1.getViewCount()).isEqualTo(13L);
+        assertThat(item2.getViewCount()).isEqualTo(7L);
+        assertThat(item3.getViewCount()).isEqualTo(5L);
+    }
+
+    @Test
+    @DisplayName("빈 목록이면 Redis를 호출하지 않고 끝난다")
+    void applyPendingViewsToEmptyList() {
+        viewCountService.applyPendingView(List.of());
     }
 }
