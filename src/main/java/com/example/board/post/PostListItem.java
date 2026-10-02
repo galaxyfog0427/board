@@ -9,6 +9,7 @@ public class PostListItem {
     String writerNickname;
     Integer commentCount;
     Long viewCount;
+    long likeCount;
     LocalDateTime createdAt;
 
     public PostListItem(Long id, String title, String writerNickname, Integer commentCount, Long viewCount,
@@ -23,6 +24,10 @@ public class PostListItem {
 
     public void addPendingViews(long pendingViews) {
         this.viewCount += pendingViews;
+    }
+
+    public void applyLikeCount(long likeCount) {
+        this.likeCount = likeCount;
     }
 
     public Long getId() {
@@ -43,6 +48,10 @@ public class PostListItem {
 
     public Long getViewCount() {
         return viewCount;
+    }
+
+    public long getLikeCount() {
+        return likeCount;
     }
 
     public LocalDateTime getCreatedAt() {

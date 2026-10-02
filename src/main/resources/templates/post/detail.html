@@ -11,6 +11,15 @@
     <p th:text="${post.content}"></p>
     <p><span th:text="#{post.createdAt}"></span>: <span th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}"></span></p>
     <p><span th:text="#{post.viewCount}"></span>: <span th:text="${viewCount}"></span></p>
+    <div>
+        <span th:text="#{post.likeCount}"></span>: <span th:text="${likeStatus.count()}"></span>
+        <form th:if="${!likeStatus.likedByMe()}" th:action="@{/posts/{postId}/like(postId=${post.id})}" method="post" style="display:inline">
+            <button type="submit" th:text="#{button.like}"></button>
+        </form>
+        <form th:if="${likeStatus.likedByMe()}" th:action="@{/posts/{postId}/unlike(postId=${post.id})}" method="post" style="display:inline">
+            <button type="submit" th:text="#{button.unlike}"></button>
+        </form>
+    </div>
 
     <a th:href="@{/posts/{postId}/edit(postId=${post.id})}" th:text="#{button.edit}">수정</a>
     <a th:href="@{/posts}" th:text="#{button.list}">목록으로</a>

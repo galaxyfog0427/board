@@ -5,6 +5,8 @@ import com.example.board.comment.CommentRepository;
 import com.example.board.common.VisitorCookieManager;
 import com.example.board.file.FileStore;
 import com.example.board.file.UploadFile;
+import com.example.board.like.LikeStatus;
+import com.example.board.like.PostLikeQueryService;
 import com.example.board.login.MemberDetails;
 import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
@@ -38,6 +40,7 @@ public class PostController {
     private final PostService postService;
     private final ViewCountService viewCountService;
     private final VisitorCookieManager visitorCookieManager;
+    private final PostLikeQueryService postLikeQueryService;
 
     public PostController(PostRepository postRepository,
                           CommentRepository commentRepository,
@@ -46,7 +49,8 @@ public class PostController {
                           FileStore fileStore,
                           PostService postService,
                           ViewCountService viewCountService,
-                          VisitorCookieManager visitorCookieManager) {
+                          VisitorCookieManager visitorCookieManager,
+                          PostLikeQueryService postLikeQueryService) {
         this.postRepository = postRepository;
         this.commentRepository = commentRepository;
         this.memberRepository = memberRepository;
@@ -55,6 +59,7 @@ public class PostController {
         this.postService = postService;
         this.viewCountService = viewCountService;
         this.visitorCookieManager = visitorCookieManager;
+        this.postLikeQueryService = postLikeQueryService;
     }
 
     @GetMapping
@@ -63,6 +68,7 @@ public class PostController {
                        Model model) {
         Page<PostListItem> posts = postRepository.findAllWithWriter(pageable);
         viewCountService.applyPendingView(posts.getContent());
+        postLikeQueryService.applyLikeCounts(posts.getContent());
         model.addAttribute("posts", posts);
         model.addAttribute("loginMember", memberDetails != null ? memberDetails.getMember() : null);
         return "post/list";
@@ -75,13 +81,15 @@ public class PostController {
                          HttpServletResponse response,
                          Model model) {
         Post post = postService.getPost(postId);
+        Long memberId = memberDetails != null ? memberDetails.getMember().getId() : null;
 
-        if (memberDetails != null) {
-            viewCountService.increaseForMember(postId, memberDetails.getMember().getId());
+        if (memberId != null) {
+            viewCountService.increaseForMember(postId, memberId);
         } else {
             viewCountService.increaseForVisitor(postId, visitorCookieManager.getOrIssue(request, response));
         }
         long viewCount = post.getViewCount() + viewCountService.getPendingCount(postId);
+        LikeStatus likeStatus = postLikeQueryService.getStatus(postId, memberId);
 
         Member writer = memberRepository.findById(post.getMember().getId()).get();
         List<Comment> comments = commentRepository.findByPostId(postId);
@@ -91,6 +99,7 @@ public class PostController {
         model.addAttribute("viewCount", viewCount);
         model.addAttribute("comments", comments);
         model.addAttribute("postFiles", postFiles);
+        model.addAttribute("likeStatus", likeStatus);
         return "post/detail";
     }
 

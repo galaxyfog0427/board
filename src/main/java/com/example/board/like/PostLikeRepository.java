@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
@@ -24,5 +25,18 @@ public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
     Optional<PostLike> findByPostIdAndMemberId(Long postId, Long memberId);
 
     long countByPostId(Long postId);
+
+    @Query("SELECT pl.memberId FROM PostLike pl WHERE pl.postId = :postId")
+    List<Long> findMemberIdsByPostId(@Param("postId") Long postId);
+
+    boolean existsByPostIdAndMemberId(Long postId, Long memberId);
+
+    @Query("""
+            SELECT new com.example.board.like.PostLikeCount(pl.postId, count(pl))
+            FROM PostLike pl
+            WHERE pl.postId in :postIds
+            GROUP BY pl.postId
+            """)
+    List<PostLikeCount> countGroupByPostIds(@Param("postIds") List<Long> postIds);
 
 }

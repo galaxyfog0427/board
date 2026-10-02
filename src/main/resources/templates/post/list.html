@@ -23,6 +23,7 @@
             <th th:text="#{post.writer}">작성자</th>
             <th th:text="#{post.commentCount}">댓글 수</th>
             <th th:text="#{post.viewCount}">조회수</th>
+            <th th:text="#{post.likeCount}">좋아요</th>
             <th th:text="#{post.createdAt}">작성일</th>
         </tr>
         </thead>
@@ -35,6 +36,7 @@
             <td th:text="${post.writerNickname}"></td>
             <td th:text="${post.commentCount}"></td>
             <td th:text="${post.viewCount}"></td>
+            <td th:text="${post.likeCount}"></td>
             <td th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
         </tr>
         </tbody>
