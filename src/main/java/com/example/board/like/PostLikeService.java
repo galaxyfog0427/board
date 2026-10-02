@@ -2,18 +2,26 @@ package com.example.board.like;
 
 import com.example.board.post.PostNotFoundException;
 import com.example.board.post.PostRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 @Service
 public class PostLikeService {
 
     private final PostLikeRepository postLikeRepository;
     private final PostRepository postRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public PostLikeService(PostLikeRepository postLikeRepository, PostRepository postRepository) {
+    public PostLikeService(PostLikeRepository postLikeRepository,
+                           PostRepository postRepository,
+                           ApplicationEventPublisher eventPublisher) {
         this.postLikeRepository = postLikeRepository;
         this.postRepository = postRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     /**
@@ -22,12 +30,12 @@ public class PostLikeService {
     @Transactional
     public boolean like(Long postId, Long memberId) {
         validatePostExists(postId);
-        int inserted = postLikeRepository.insertIgnore(postId, memberId);
-        /**
-         * TODO
-         * inserted == 1 일 때만 커밋 후 Redis 반영 이벤트 발행
-         */
-        return inserted == 1;
+        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        boolean liked = postLikeRepository.insertIgnore(postId, memberId, now) == 1;
+        if (liked) {
+            eventPublisher.publishEvent(new PostLikedEvent(postId, memberId, now.toLocalDate()));
+        }
+        return liked;
     }
 
     /**
@@ -36,11 +44,14 @@ public class PostLikeService {
     @Transactional
     public boolean unlike(Long postId, Long memberId) {
         return postLikeRepository.findByPostIdAndMemberId(postId, memberId)
-                .map(postLike -> postLikeRepository.deleteByIdReturningCount(postLike.getId()) == 1)
-                /**
-                 * TODO
-                 * 삭제 성공 시 postLike.getCreatedAt()을 담아 이벤트 발행 (랭킹의 어느 날짜에서 뺄지)
-                 */
+                .map(postLike -> {
+                    boolean unliked = postLikeRepository.deleteByIdReturningCount(postLike.getId()) == 1;
+                    if (unliked) {
+                        eventPublisher.publishEvent(
+                                new PostUnlikedEvent(postId, memberId, postLike.getCreatedAt().toLocalDate()));
+                    }
+                    return unliked;
+                })
                 .orElse(false);
     }
 
