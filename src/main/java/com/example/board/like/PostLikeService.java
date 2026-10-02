@@ -34,6 +34,8 @@ public class PostLikeService {
         boolean liked = postLikeRepository.insertIgnore(postId, memberId, now) == 1;
         if (liked) {
             eventPublisher.publishEvent(new PostLikedEvent(postId, memberId, now.toLocalDate()));
+        } else {
+            eventPublisher.publishEvent(new PostLikeCacheStaleEvent(postId));
         }
         return liked;
     }
@@ -43,16 +45,20 @@ public class PostLikeService {
      */
     @Transactional
     public boolean unlike(Long postId, Long memberId) {
-        return postLikeRepository.findByPostIdAndMemberId(postId, memberId)
+        boolean unliked = postLikeRepository.findByPostIdAndMemberId(postId, memberId)
                 .map(postLike -> {
-                    boolean unliked = postLikeRepository.deleteByIdReturningCount(postLike.getId()) == 1;
-                    if (unliked) {
+                    boolean deleted = postLikeRepository.deleteByIdReturningCount(postLike.getId()) == 1;
+                    if (deleted) {
                         eventPublisher.publishEvent(
                                 new PostUnlikedEvent(postId, memberId, postLike.getCreatedAt().toLocalDate()));
                     }
-                    return unliked;
+                    return deleted;
                 })
                 .orElse(false);
+        if (!unliked) {
+            eventPublisher.publishEvent(new PostLikeCacheStaleEvent(postId));
+        }
+        return unliked;
     }
 
     @Transactional(readOnly = true)

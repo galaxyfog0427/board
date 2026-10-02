@@ -55,7 +55,9 @@ class PostLikeQueryServiceTest {
         postLikeService.like(postId, member.getId());
 
         LikeStatus status = postLikeQueryService.getStatus(postId, member.getId());
+        LikeStatus cachedStatus = postLikeQueryService.getStatus(postId, member.getId());
 
+        assertThat(cachedStatus).isEqualTo(status);
         assertThat(status.count()).isOne();
         assertThat(status.likedByMe()).isTrue();
         assertThat(redisTemplate.opsForSet().members(RedisKeys.postLikes(postId)))
@@ -70,7 +72,9 @@ class PostLikeQueryServiceTest {
         Long postId = savePost(member);
 
         LikeStatus status = postLikeQueryService.getStatus(postId, member.getId());
+        LikeStatus cachedStatus = postLikeQueryService.getStatus(postId, member.getId());
 
+        assertThat(cachedStatus).isEqualTo(status);
         assertThat(status.count()).isZero();
         assertThat(status.likedByMe()).isFalse();
         assertThat(redisTemplate.opsForSet().size(RedisKeys.postLikes(postId))).isOne();

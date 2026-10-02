@@ -50,4 +50,13 @@ public class PostLikeRedisSync {
             log.warn("[좋아요 취소 Redis 반영 실패] postId={}, cause={}", event.postId(), e.getMostSpecificCause().getMessage());
         }
     }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onCacheStale(PostLikeCacheStaleEvent event) {
+        try {
+            redisTemplate.delete(RedisKeys.postLikes(event.postId()));
+        } catch (DataAccessException e) {
+            log.warn("[좋아요 캐시 삭제 실패] postId={}, cause={}", event.postId(), e.getMostSpecificCause().getMessage());
+        }
+    }
 }

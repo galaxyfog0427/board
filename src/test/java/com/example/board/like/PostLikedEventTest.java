@@ -75,6 +75,7 @@ class PostLikedEventTest {
         postRepository.deleteById(postId);
         memberRepository.deleteById(memberId);
         redisTemplate.opsForZSet().remove(todayKey, String.valueOf(postId));
+        redisTemplate.delete(RedisKeys.postLikes(postId));
     }
 
     @Test
@@ -94,6 +95,18 @@ class PostLikedEventTest {
         });
 
         assertThat(redisTemplate.opsForZSet().score(todayKey, String.valueOf(postId))).isNull();
+    }
+
+    @Test
+    @DisplayName("이미 누른 좋아요를 다시 누르면 캐시가 틀렸다고 보고 Set을 삭제한다")
+    void staleCacheIsEvictedOnDuplicateLike() {
+        postLikeService.like(postId, memberId);
+        redisTemplate.opsForSet().add(RedisKeys.postLikes(postId), PostLikeQueryService.SENTINEL);
+
+        boolean liked = postLikeService.like(postId, memberId);
+
+        assertThat(liked).isFalse();
+        assertThat(redisTemplate.hasKey(RedisKeys.postLikes(postId))).isFalse();
     }
 
 }
