@@ -10,6 +10,7 @@ import com.example.board.like.PostLikeQueryService;
 import com.example.board.login.MemberDetails;
 import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
+import com.example.board.ranking.PopularPostService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
@@ -41,6 +42,7 @@ public class PostController {
     private final ViewCountService viewCountService;
     private final VisitorCookieManager visitorCookieManager;
     private final PostLikeQueryService postLikeQueryService;
+    private final PopularPostService popularPostService;
 
     public PostController(PostRepository postRepository,
                           CommentRepository commentRepository,
@@ -50,7 +52,8 @@ public class PostController {
                           PostService postService,
                           ViewCountService viewCountService,
                           VisitorCookieManager visitorCookieManager,
-                          PostLikeQueryService postLikeQueryService) {
+                          PostLikeQueryService postLikeQueryService,
+                          PopularPostService popularPostService) {
         this.postRepository = postRepository;
         this.commentRepository = commentRepository;
         this.memberRepository = memberRepository;
@@ -60,6 +63,7 @@ public class PostController {
         this.viewCountService = viewCountService;
         this.visitorCookieManager = visitorCookieManager;
         this.postLikeQueryService = postLikeQueryService;
+        this.popularPostService = popularPostService;
     }
 
     @GetMapping
@@ -70,6 +74,7 @@ public class PostController {
         viewCountService.applyPendingView(posts.getContent());
         postLikeQueryService.applyLikeCounts(posts.getContent());
         model.addAttribute("posts", posts);
+        model.addAttribute("popularPosts", popularPostService.getTop());
         model.addAttribute("loginMember", memberDetails != null ? memberDetails.getMember() : null);
         return "post/list";
     }

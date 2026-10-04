@@ -7,6 +7,17 @@
 <body>
 <div>
     <h2 th:text="#{page.list}">게시글 목록</h2>
+
+    <div th:if="${!popularPosts.isEmpty()}">
+        <h3 th:text="#{label.popular}">이번 주 인기글</h3>
+        <ol>
+            <li th:each="popular : ${popularPosts}">
+                <a th:href="@{/posts/{postId}(postId=${popular.postId()})}" th:text="${popular.title()}"></a>
+                (<span th:text="#{post.likeCount}"></span> <span th:text="${popular.likeCount()}"></span>)
+            </li>
+        </ol>
+    </div>
+
     <div>
         <span th:if="${loginMember != null}" th:text="${loginMember.nickname} + '님 환영합니다'"></span>
         <a th:if="${loginMember == null}" th:href="@{/members/add}" th:text="#{page.join}"></a> |
