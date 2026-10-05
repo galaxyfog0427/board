@@ -20,7 +20,7 @@ public class PostLikeController {
     public String like(@PathVariable("postId") Long postId,
                        @AuthenticationPrincipal MemberDetails memberDetails,
                        RedirectAttributes redirectAttributes) {
-        postLikeService.like(postId, memberDetails.getMember().getId());
+        postLikeService.like(postId, memberDetails.getMemberId());
         redirectAttributes.addAttribute("postId", postId);
         return "redirect:/posts/{postId}";
     }
@@ -29,7 +29,7 @@ public class PostLikeController {
     public String unlike(@PathVariable("postId") Long postId,
                          @AuthenticationPrincipal MemberDetails memberDetails,
                          RedirectAttributes redirectAttributes) {
-        postLikeService.unlike(postId, memberDetails.getMember().getId());
+        postLikeService.unlike(postId, memberDetails.getMemberId());
         redirectAttributes.addAttribute("postId", postId);
         return "redirect:/posts/{postId}";
     }

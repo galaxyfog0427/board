@@ -75,7 +75,7 @@ public class PostController {
         postLikeQueryService.applyLikeCounts(posts.getContent());
         model.addAttribute("posts", posts);
         model.addAttribute("popularPosts", popularPostService.getTop());
-        model.addAttribute("loginMember", memberDetails != null ? memberDetails.getMember() : null);
+        model.addAttribute("loginMember", memberDetails);
         return "post/list";
     }
 
@@ -86,7 +86,7 @@ public class PostController {
                          HttpServletResponse response,
                          Model model) {
         Post post = postService.getPost(postId);
-        Long memberId = memberDetails != null ? memberDetails.getMember().getId() : null;
+        Long memberId = memberDetails != null ? memberDetails.getMemberId() : null;
 
         if (memberId != null) {
             viewCountService.increaseForMember(postId, memberId);
@@ -124,7 +124,7 @@ public class PostController {
 
         Post post = new Post(
                 null,
-                memberDetails.getMember(),
+                memberRepository.getReferenceById(memberDetails.getMemberId()),
                 postSaveForm.getTitle(),
                 postSaveForm.getContent(),
                 null);
@@ -158,7 +158,7 @@ public class PostController {
                            Model model) {
         Post post = postService.getPost(postId);
 
-        if (!memberDetails.getMember().getId().equals(post.getMember().getId())) {
+        if (!memberDetails.getMemberId().equals(post.getMember().getId())) {
             throw new UnauthorizedPostAccessException("본인이 작성한 게시글만 수정할 수 있습니다.");
         }
 
@@ -180,7 +180,7 @@ public class PostController {
 
         Post post = postService.getPost(postId);
 
-        if (!memberDetails.getMember().getId().equals(post.getMember().getId())) {
+        if (!memberDetails.getMemberId().equals(post.getMember().getId())) {
             throw new UnauthorizedPostAccessException("본인이 작성한 게시글만 수정할 수 있습니다.");
         }
 

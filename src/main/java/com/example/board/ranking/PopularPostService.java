@@ -55,13 +55,13 @@ public class PopularPostService {
                 .collect(Collectors.toMap(PostListItem::getId, Function.identity()));
 
         return ranked.stream()
+                .filter(tuple -> postsById.containsKey(Long.parseLong(tuple.getValue())))
+                .limit(TOP)
                 .map(tuple -> {
                     Long postId = Long.parseLong(tuple.getValue());
                     PostListItem item = postsById.get(postId);
                     return new PopularPost(item.getId(), item.getTitle(), item.getWriterNickname(), tuple.getScore().longValue());
                 })
-                .filter(Objects::nonNull)
-                .limit(TOP)
                 .toList();
     }
 }

@@ -3,11 +3,9 @@ package com.example.board.post;
 import com.example.board.common.RedisKeys;
 import com.example.board.common.VisitorCookieManager;
 import com.example.board.login.MemberDetails;
-import com.example.board.login.SessionConst;
 import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
 import jakarta.servlet.http.Cookie;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,9 +20,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -168,5 +168,17 @@ class PostControllerTest {
                 .andExpect(status().isNotFound());
 
         assertThat(redisTemplate.opsForZSet().score(RedisKeys.pendingViews(), "999999999999999"));
+    }
+
+    @Test
+    @DisplayName("로그인한 회원이 목록을 열면 닉네임과 함께 정상 표시된다")
+    void listWithLogin() throws Exception {
+        Member member = memberRepository.save(new Member(
+                null, "listLoginTester", "test1234!", "목록테스터", null, null
+        ));
+
+        mockMvc.perform(get("/posts").with(user(new MemberDetails(member))))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("목록테스터님 환영합니다")));
     }
 }
