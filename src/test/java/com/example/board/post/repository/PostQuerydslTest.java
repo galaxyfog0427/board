@@ -3,6 +3,8 @@ package com.example.board.post;
 
 import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
+import com.example.board.post.domain.Post;
+import com.example.board.post.repository.PostRepository;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.junit.jupiter.api.Test;
@@ -14,7 +16,7 @@ import org.springframework.util.StringUtils;
 import java.util.List;
 
 import static com.example.board.member.QMember.member;
-import static com.example.board.post.QPost.post;
+import static com.example.board.post.domain.QPost.post;
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest

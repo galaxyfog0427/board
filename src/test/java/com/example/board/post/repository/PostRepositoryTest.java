@@ -2,6 +2,9 @@ package com.example.board.post;
 
 import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
+import com.example.board.post.domain.Post;
+import com.example.board.post.dto.PostListItem;
+import com.example.board.post.repository.PostRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

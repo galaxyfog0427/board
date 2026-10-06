@@ -1,5 +1,7 @@
 package com.example.board.post;
 
+import com.example.board.file.PostFile;
+import com.example.board.file.PostFileRepository;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;

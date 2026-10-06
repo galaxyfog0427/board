@@ -1,5 +1,7 @@
 package com.example.board.post;
 
+import com.example.board.post.domain.Post;
+import com.example.board.post.repository.PostRepository;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

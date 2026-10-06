@@ -7,6 +7,7 @@ Spring Boot와 MySQL을 사용해 백엔드 기본기를 학습하기 위한 게
 ![MySQL](https://img.shields.io/badge/MySQL-8-blue)
 ![Spring Security](https://img.shields.io/badge/Spring%20Security-enabled-brightgreen)
 ![JPA](https://img.shields.io/badge/JPA-Querydsl-lightgrey)
+![Redis](https://img.shields.io/badge/Redis-Lettuce-red)
 
 ## 한눈에 보기
 
@@ -19,6 +20,8 @@ Spring Boot와 MySQL을 사용해 백엔드 기본기를 학습하기 위한 게
 - **N+1 문제**를 ToOne 관계 fetch join + `default_batch_fetch_size` 안전망으로 해결하고, `open-in-view=false`로 지연 로딩 위험 제거
 - **게시글 동시 수정 충돌**을 낙관적 락(`@Version`)으로 제어, 더티 체킹 타이밍 문제는 명시적 `flush()`로 해결
 - **CSRF는 활성화**하되, WebFlux·HTTP Basic·동시 세션 제어·OAuth2 소셜 로그인 등은 게시판 규모 대비 실익이 낮다고 판단해 의도적으로 배제
+- **Redis는 데이터 성격에 따라 원본 위치를 다르게** — 좋아요는 DB가 원본이고 Redis는 커밋 후 반영되는 사본, 조회수는 반영 전 증가분만 Redis에 모았다가 1분마다 DB에 일괄 반영, 세션은 Redis가 유일한 저장소
+- **Redis 장애가 서비스 장애로 번지지 않게** — 명령 타임아웃 500ms, 연결이 끊기면 즉시 거절, 사본 데이터는 DB 폴백. 단 세션은 폴백이 불가능한 단일 장애 지점(SPOF)임을 인지하고, 운영이라면 Sentinel 또는 관리형 다중 가용 영역 구성으로 이중화한다고 판단
 
 ### ERD
 
@@ -28,6 +31,8 @@ erDiagram
     MEMBER ||--o{ COMMENT : writes
     POST ||--o{ COMMENT : has
     POST ||--o{ POST_FILE : has
+    MEMBER ||--o{ POST_LIKE : likes
+    POST ||--o{ POST_LIKE : has
 
     MEMBER {
         bigint member_id PK
@@ -43,6 +48,7 @@ erDiagram
         varchar title
         text content
         int comment_count
+        bigint view_count
     }
     COMMENT {
         bigint comment_id PK
@@ -57,6 +63,12 @@ erDiagram
         varchar store_file_name
         bigint file_size
     }
+    POST_LIKE {
+        bigint post_like_id PK
+        bigint post_id FK
+        bigint member_id FK
+        datetime created_at
+    }
 ```
 ---
 
@@ -68,6 +80,7 @@ erDiagram
 | title | VARCHAR(200) | 게시글 제목 |
 | content | TEXT | 게시글 내용 |
 | comment_count | INT | 댓글 개수 (역정규화, 기본값 0) |
+| view_count | BIGINT | 조회수 (Redis에 쌓인 증가분을 1분마다 반영, 기본값 0) |
 | created_at | DATETIME | 작성 시간 |
 | updated_at | DATETIME | 수정 시간 |
 
@@ -103,6 +116,16 @@ erDiagram
 | file_size | BIGINT | 파일 크기 (byte) |
 | created_at | DATETIME | 업로드 시간 |
 
+## Post_like 테이블
+| 컬럼 | 타입 | 설명 |
+|---|---|---|
+| post_like_id | BIGINT | 좋아요 식별자, PK, AUTO_INCREMENT |
+| post_id | BIGINT | 게시글, FK (post.post_id 참조) |
+| member_id | BIGINT | 좋아요를 누른 회원, FK (member.member_id 참조) |
+| created_at | DATETIME | 좋아요 시각 (일별 랭킹의 날짜 기준, 앱 시각을 초 단위로 저장) |
+
+`(post_id, member_id)` UNIQUE 제약으로 한 회원은 한 게시글에 한 번만 좋아요할 수 있다. 이 유니크 인덱스가 게시글별 좋아요 수 조회(`COUNT`, `GROUP BY`)도 함께 처리한다.
+
 ## 현재 테이블 설계
 ```sql
 CREATE TABLE member (
@@ -124,6 +147,7 @@ CREATE TABLE post (
     title VARCHAR(200) NOT NULL,
     content TEXT NOT NULL,
     comment_count INT NOT NULL DEFAULT 0,
+    view_count BIGINT NOT NULL DEFAULT 0,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (post_id),
@@ -151,6 +175,17 @@ CREATE TABLE post_file (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (file_id),
     CONSTRAINT fk_post_file_post FOREIGN KEY (post_id) REFERENCES post (post_id)
+);
+
+CREATE TABLE post_like (
+    post_like_id BIGINT NOT NULL AUTO_INCREMENT,
+    post_id BIGINT NOT NULL,
+    member_id BIGINT NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (post_like_id),
+    UNIQUE KEY uk_post_like (post_id, member_id),
+    CONSTRAINT fk_post_like_post FOREIGN KEY (post_id) REFERENCES post (post_id),
+    CONSTRAINT fk_post_like_member FOREIGN KEY (member_id) REFERENCES member (member_id)
 );
 ```
 
@@ -283,9 +318,56 @@ CREATE TABLE post_file (
 - OAuth2/OpenID Connect 개념 학습(4대 역할, Authorization Code Grant 흐름, Access/ID Token 구분, OAuth2UserService의 UserDetailsService 대응 구조)
 - 실제 소셜 로그인은 회원 스키마 변경(비밀번호 nullable화 등) 비용 대비 실익이 낮다고 판단해 board엔 미적용, 개념 이해까지만 진행
 
+#### Redis 도입 (조회수, 좋아요, 인기글 랭킹, 세션)
+- 『개발자를 위한 레디스』로 자료구조, 캐싱 전략, 영속성, 복제, Lua를 학습한 뒤 설계 원칙을 먼저 정하고 적용
+    - 확인과 변경은 명령 하나로(check-then-act 금지), O(n) 명령 금지, 모든 키에 수명 지정(원본 키 제외), Redis에는 DB 커밋이 확정된 사실만 반영, Redis의 파생 데이터는 DB로 재구성 가능하게
+- 키 이름은 `RedisKeys` 한 곳에서만 생성(`board:` 접두사), 테스트는 Redis 1번 DB로 격리
+- **조회수**: `SET NX EX 600`으로 10분 내 중복 조회 방지(회원은 id, 비회원은 UUID 쿠키) → Sorted Set에 증가분 누적 → 1분마다 `JdbcTemplate` 배치 UPDATE 후 읽은 만큼만 `ZINCRBY -n`으로 차감(그 사이 들어온 조회수 보존)
+    - 화면 조회수 = DB 값 + Redis 증가분, 목록은 `ZMSCORE` 한 번으로 10개 조회
+- **좋아요**: `post_like` 테이블이 원본. `INSERT IGNORE`와 UNIQUE 제약으로 멱등 처리, 커밋 후(`@TransactionalEventListener(AFTER_COMMIT)`) Lua 스크립트로 좋아요 Set과 일별 랭킹을 원자적으로 반영
+    - 상세 페이지는 Set 캐시(1시간)로 좋아요 수와 내 상태를 한 번에 조회, 없으면 DB에서 재구성. 좋아요 0개 글도 캐시되도록 센티넬 멤버 사용
+    - 목록의 좋아요 수는 Redis 대신 DB `GROUP BY` 한 방(`SCARD`가 "캐시 없음"과 "0개"를 구분하지 못해 설계 변경)
+    - 요청 결과가 캐시와 어긋나면(이미 누름, 이미 취소) 캐시를 삭제해 다음 조회에서 재구성되도록 자가 복구
+- **인기글 랭킹**: 일별 Sorted Set(8일 수명) → 1분마다 최근 7일을 `ZUNIONSTORE`로 합산(결과 키 5분 수명, 멱등) → 상위 10개를 DB와 대조해 표시
+- **세션**: Spring Session으로 저장소를 Redis로 전환해 재시작 후에도 로그인 유지. 세션에는 엔티티 대신 회원 id, 로그인 id, 닉네임만 담은 직렬화 가능한 스냅샷을 저장하고 비밀번호는 인증 후 삭제
+- **장애 대응 실험**: Redis를 직접 중단해 요청당 약 1초 지연을 측정, 연결 끊김 시 즉시 거절하도록 바꿔 0ms로 개선. 장애 로그는 스택트레이스 대신 원인 한 줄로
+- 의도적으로 넣지 않은 것: 서킷 브레이커(Redis 하나에 대비 실익이 작음), 세션 Redis 이중화(학습 규모), 좋아요 수 반정규화(현재는 `COUNT`로 충분), 랭킹 재집계 배치
+
 ### 데이터베이스 설계
 - 개념적/논리적 모델링 설계 완료 (Member/Post/Comment 엔티티, 관계, 참여도, 식별 여부 확정)
 - 물리적 모델링 완료 (데이터 타입, 제약조건, 역정규화 확정)
+
+## 문제 해결 기록
+
+### 게시글 수정이 댓글 수를 과거 값으로 덮어쓰던 문제
+- **문제**: 게시글을 수정하는 사이 댓글이 달리면 댓글 수가 수정 전 값으로 되돌아감
+- **원인**: 더티 체킹이 만드는 UPDATE가 바뀐 컬럼만이 아니라 모든 컬럼을 포함함. 벌크 쿼리로 올린 `comment_count`는 `@Version`을 올리지 않아 낙관적 락도 막지 못함
+- **해결**: 카운터 컬럼에 `@Column(updatable = false)`를 걸어 엔티티 UPDATE에서 제외. 이후 추가한 `view_count`도 처음부터 같은 방식 적용
+- **확인**: 조회 → 벌크 증가 → 수정 저장 순서를 재현하는 테스트로 수정 전 실패, 수정 후 통과 확인
+
+### Redis 장애 시 요청마다 1초씩 지연되던 문제
+- **문제**: Redis를 중단하면 페이지는 뜨지만 상세 조회마다 약 1초씩 지연
+- **원인**: Lettuce가 연결이 끊긴 동안 명령을 버퍼에 쌓고 재연결을 기다림. 명령 2개가 각각 타임아웃 500ms를 기다림
+- **해결**: 연결이 끊기면 명령을 즉시 거절하도록 설정(`REJECT_COMMANDS`), 장애 로그도 원인 한 줄로 축약
+- **확인**: 로그 타임스탬프로 실패 간격 500ms → 0ms 측정, Redis 재기동 후 자동 재연결 확인
+
+### 좋아요 동시 요청 문제
+- **문제**: 같은 회원의 동시 좋아요 요청이 중복 저장 예외를 내고, 동시 취소 요청은 랭킹 점수를 요청 수만큼 깎을 수 있음
+- **원인**: "확인 후 저장"과 "조회 후 삭제" 모두 두 단계 사이에 다른 요청이 끼어들 수 있음(check-then-act)
+- **해결**: 좋아요는 `INSERT IGNORE` 한 문장으로 확인과 저장을 합치고 반환 행 수(0/1)로 결과 판단. 취소는 반환 행 수가 1일 때만 랭킹 차감 이벤트 발행
+- **확인**: 스레드 10개를 `CountDownLatch`로 동시에 출발시키는 테스트로 저장 1건, 성공 1번, 예외 0건 검증
+
+### 주간 랭킹 점수가 매분 불어나던 문제
+- **문제**: 1분마다 주간 랭킹을 합산할 때마다 점수가 2 → 4 → 6으로 증가
+- **원인**: `ZUNIONSTORE`의 입력에 결과 키 자신이 포함됨. `unionAndStore`의 첫 인자도 합칠 재료라는 점을 놓침
+- **해결**: 입력을 일별 키 7개로만 구성
+- **확인**: 두 번 실행해도 결과가 같은지 검증하는 멱등성 테스트로 재현 후 수정 확인
+
+### 로그인 상태에서만 목록 화면이 깨지던 문제
+- **문제**: 모든 테스트는 통과했지만 실제로 로그인 후 목록에 들어가면 오류 페이지 표시
+- **원인**: 목록 화면에 `getReferenceById`로 만든 회원 프록시를 넘겼고, 화면 렌더링 시점(OSIV 비활성)에 프록시가 닉네임을 읽으려다 `LazyInitializationException` 발생. 테스트 설정만 OSIV가 켜져 있어 테스트에서는 재현되지 않음
+- **해결**: 세션의 회원 스냅샷(`MemberDetails`)을 그대로 화면에 전달. 테스트 OSIV 설정을 운영과 일치
+- **확인**: 로그인 상태 목록 테스트를 추가해 수정 전 실패, 수정 후 통과 확인
 
 ## 설계 문서
 - 데이터베이스 논리적 모델링 설계 결정사항 [docs/design.md](./docs/design.md) 참고
