@@ -1,6 +1,6 @@
 package com.example.board.ranking;
 
-import com.example.board.common.RedisKeys;
+import com.example.board.global.redis.RedisKeys;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

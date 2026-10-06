@@ -1,4 +1,4 @@
-package com.example.board.post;
+package com.example.board.view;
 
 import com.example.board.global.redis.RedisKeys;
 import lombok.extern.slf4j.Slf4j;

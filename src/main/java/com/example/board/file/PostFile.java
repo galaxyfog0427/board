@@ -1,4 +1,4 @@
-package com.example.board.post;
+package com.example.board.file;
 
 import java.time.LocalDateTime;
 import java.util.List;

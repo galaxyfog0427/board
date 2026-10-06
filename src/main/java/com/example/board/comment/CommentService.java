@@ -1,6 +1,6 @@
 package com.example.board.comment;
 
-import com.example.board.post.PostRepository;
+import com.example.board.post.repository.PostRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

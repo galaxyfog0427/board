@@ -1,7 +1,7 @@
 package com.example.board.api;
 
-import com.example.board.common.ApiResponse;
-import com.example.board.post.PostNotFoundException;
+import com.example.board.global.web.ApiResponse;
+import com.example.board.post.exception.PostNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;

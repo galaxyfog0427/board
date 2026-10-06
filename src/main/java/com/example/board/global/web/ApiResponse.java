@@ -1,4 +1,4 @@
-package com.example.board.common;
+package com.example.board.global.web;
 
 public record ApiResponse<T>(boolean success, T data, String message) {
 

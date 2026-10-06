@@ -1,5 +1,7 @@
-package com.example.board.post;
+package com.example.board.post.service;
 
+import com.example.board.post.exception.PostEditConflictException;
+import com.example.board.post.exception.PostNotFoundException;
 import com.example.board.post.domain.Post;
 import com.example.board.post.repository.PostRepository;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;

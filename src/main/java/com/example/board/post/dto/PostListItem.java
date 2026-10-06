@@ -1,4 +1,4 @@
-package com.example.board.post;
+package com.example.board.post.dto;
 
 import java.time.LocalDateTime;
 

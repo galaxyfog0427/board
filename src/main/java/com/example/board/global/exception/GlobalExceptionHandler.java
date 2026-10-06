@@ -1,8 +1,8 @@
-package com.example.board;
+package com.example.board.global.exception;
 
-import com.example.board.post.PostEditConflictException;
-import com.example.board.post.PostNotFoundException;
-import com.example.board.post.UnauthorizedPostAccessException;
+import com.example.board.post.exception.PostEditConflictException;
+import com.example.board.post.exception.PostNotFoundException;
+import com.example.board.post.exception.UnauthorizedPostAccessException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;

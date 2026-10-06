@@ -1,4 +1,4 @@
-package com.example.board.post;
+package com.example.board.post.web;
 
 import jakarta.validation.constraints.NotBlank;
 

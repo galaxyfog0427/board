@@ -1,6 +1,6 @@
 package com.example.board.member;
 
-import com.example.board.common.BaseTimeEntity;
+import com.example.board.global.web.BaseTimeEntity;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;

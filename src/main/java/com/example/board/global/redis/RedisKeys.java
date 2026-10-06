@@ -1,4 +1,4 @@
-package com.example.board.common;
+package com.example.board.global.redis;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;

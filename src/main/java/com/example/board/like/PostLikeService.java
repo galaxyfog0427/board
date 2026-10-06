@@ -1,7 +1,7 @@
 package com.example.board.like;
 
-import com.example.board.post.PostNotFoundException;
-import com.example.board.post.PostRepository;
+import com.example.board.post.exception.PostNotFoundException;
+import com.example.board.post.repository.PostRepository;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

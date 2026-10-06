@@ -1,8 +1,8 @@
 package com.example.board.ranking;
 
-import com.example.board.common.RedisKeys;
-import com.example.board.post.PostListItem;
-import com.example.board.post.PostRepository;
+import com.example.board.global.redis.RedisKeys;
+import com.example.board.post.dto.PostListItem;
+import com.example.board.post.repository.PostRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.StringRedisTemplate;

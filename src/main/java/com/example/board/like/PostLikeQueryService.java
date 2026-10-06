@@ -1,7 +1,7 @@
 package com.example.board.like;
 
-import com.example.board.common.RedisKeys;
-import com.example.board.post.PostListItem;
+import com.example.board.global.redis.RedisKeys;
+import com.example.board.post.dto.PostListItem;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.dao.DataAccessException;

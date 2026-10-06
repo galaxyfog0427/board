@@ -1,8 +1,7 @@
-package com.example.board.post;
+package com.example.board.post.domain;
 
 import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
-import com.example.board.post.domain.Post;
 import com.example.board.post.repository.PostRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;

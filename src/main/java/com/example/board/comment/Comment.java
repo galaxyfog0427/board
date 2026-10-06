@@ -1,11 +1,9 @@
 package com.example.board.comment;
 
-import com.example.board.common.BaseTimeEntity;
+import com.example.board.global.web.BaseTimeEntity;
 import com.example.board.member.Member;
-import com.example.board.post.Post;
+import com.example.board.post.domain.Post;
 import jakarta.persistence.*;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "comment")

@@ -1,4 +1,4 @@
-package com.example.board.common;
+package com.example.board.global.web;
 
 import org.springframework.data.domain.Page;
 

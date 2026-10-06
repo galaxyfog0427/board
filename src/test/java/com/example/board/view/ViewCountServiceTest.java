@@ -1,8 +1,7 @@
-package com.example.board.post;
+package com.example.board.view;
 
 import com.example.board.global.redis.RedisKeys;
 import com.example.board.post.dto.PostListItem;
-import com.example.board.view.ViewCountService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -1,4 +1,4 @@
-package com.example.board.post;
+package com.example.board.post.web;
 
 import com.example.board.global.redis.RedisKeys;
 import com.example.board.global.web.VisitorCookieManager;

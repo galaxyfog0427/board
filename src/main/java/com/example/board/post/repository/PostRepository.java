@@ -1,5 +1,7 @@
-package com.example.board.post;
+package com.example.board.post.repository;
 
+import com.example.board.post.dto.PostListItem;
+import com.example.board.post.domain.Post;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -23,7 +25,7 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostRepositor
     void incrementCommentCount(@Param("postId") Long postId);
 
     @Query(value = """
-                select new com.example.board.post.PostListItem(p.id, p.title, p.member.nickname, p.commentCount, p.viewCount, p.createdAt)
+                select new com.example.board.post.dto.PostListItem(p.id, p.title, p.member.nickname, p.commentCount, p.viewCount, p.createdAt)
                 from Post p
             """,
             countQuery = "select count(p) from Post p")
@@ -33,7 +35,7 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostRepositor
     Optional<Post> findByIdWithMember(@Param("postId") Long postId);
 
     @Query("""
-            SELECT new com.example.board.post.PostListItem(p.id, p.title, p.member.nickname, p.commentCount, p.viewCount, p.createdAt)
+            SELECT new com.example.board.post.dto.PostListItem(p.id, p.title, p.member.nickname, p.commentCount, p.viewCount, p.createdAt)
             FROM Post p
             WHERE p.id in :ids
             """)

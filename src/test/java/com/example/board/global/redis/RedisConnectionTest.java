@@ -1,6 +1,5 @@
-package com.example.board.common;
+package com.example.board.global.redis;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

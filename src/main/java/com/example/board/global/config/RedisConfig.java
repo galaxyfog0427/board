@@ -1,4 +1,4 @@
-package com.example.board.common;
+package com.example.board.global.config;
 
 import io.lettuce.core.ClientOptions;
 import org.springframework.boot.data.redis.autoconfigure.LettuceClientOptionsBuilderCustomizer;

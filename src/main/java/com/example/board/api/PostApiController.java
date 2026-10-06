@@ -2,9 +2,13 @@ package com.example.board.api;
 
 import com.example.board.comment.Comment;
 import com.example.board.comment.CommentRepository;
-import com.example.board.common.ApiResponse;
-import com.example.board.common.PageResponse;
-import com.example.board.post.*;
+import com.example.board.global.web.ApiResponse;
+import com.example.board.global.web.PageResponse;
+import com.example.board.post.domain.Post;
+import com.example.board.post.dto.PostListItem;
+import com.example.board.post.dto.PostSearchCondition;
+import com.example.board.post.repository.PostRepository;
+import com.example.board.post.service.PostService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;

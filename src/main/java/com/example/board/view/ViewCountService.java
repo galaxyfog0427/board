@@ -1,6 +1,7 @@
-package com.example.board.post;
+package com.example.board.view;
 
 import com.example.board.global.redis.RedisKeys;
+import com.example.board.post.dto.PostListItem;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.StringRedisTemplate;

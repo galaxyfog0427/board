@@ -1,4 +1,4 @@
-package com.example.board.post;
+package com.example.board.post.web;
 
 import com.example.board.comment.Comment;
 import com.example.board.comment.CommentRepository;
@@ -12,8 +12,11 @@ import com.example.board.like.PostLikeQueryService;
 import com.example.board.login.MemberDetails;
 import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
+import com.example.board.post.dto.PostListItem;
+import com.example.board.post.exception.UnauthorizedPostAccessException;
 import com.example.board.post.domain.Post;
 import com.example.board.post.repository.PostRepository;
+import com.example.board.post.service.PostService;
 import com.example.board.ranking.PopularPostService;
 import com.example.board.view.ViewCountService;
 import jakarta.servlet.http.HttpServletRequest;

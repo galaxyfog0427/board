@@ -1,10 +1,8 @@
-package com.example.board.post;
+package com.example.board.post.domain;
 
-import com.example.board.common.BaseTimeEntity;
+import com.example.board.global.web.BaseTimeEntity;
 import com.example.board.member.Member;
 import jakarta.persistence.*;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "post")

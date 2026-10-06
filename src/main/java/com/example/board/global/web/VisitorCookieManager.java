@@ -1,4 +1,4 @@
-package com.example.board.common;
+package com.example.board.global.web;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;

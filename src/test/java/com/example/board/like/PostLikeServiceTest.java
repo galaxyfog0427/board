@@ -2,9 +2,9 @@ package com.example.board.like;
 
 import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
-import com.example.board.post.Post;
-import com.example.board.post.PostNotFoundException;
-import com.example.board.post.PostRepository;
+import com.example.board.post.domain.Post;
+import com.example.board.post.exception.PostNotFoundException;
+import com.example.board.post.repository.PostRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

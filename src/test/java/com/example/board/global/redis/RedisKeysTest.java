@@ -1,6 +1,5 @@
-package com.example.board.common;
+package com.example.board.global.redis;
 
-import com.example.board.global.redis.RedisKeys;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

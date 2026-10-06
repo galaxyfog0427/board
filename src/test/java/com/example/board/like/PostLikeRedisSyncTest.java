@@ -1,7 +1,6 @@
 package com.example.board.like;
 
-import com.example.board.common.RedisKeys;
-import org.assertj.core.api.Assertions;
+import com.example.board.global.redis.RedisKeys;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
