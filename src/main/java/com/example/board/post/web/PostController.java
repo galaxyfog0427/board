@@ -113,6 +113,7 @@ public class PostController {
         model.addAttribute("comments", comments);
         model.addAttribute("postFiles", postFiles);
         model.addAttribute("likeStatus", likeStatus);
+        model.addAttribute("loginMember", memberDetails);
         return "post/detail";
     }
 

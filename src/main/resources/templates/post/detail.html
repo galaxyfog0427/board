@@ -38,8 +38,19 @@
 
     <h3 th:text="#{label.comments}">댓글</h3>
     <ul>
-        <li th:each="comment : ${comments}" th:text="${comment.content}"></li>
+        <li th:each="comment : ${comments}">
+            <strong th:text="${comment.member.nickname}"></strong>
+            <span th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}"></span>
+            <p th:text="${comment.content}"></p>
+        </li>
     </ul>
+
+    <p class="error-message" th:if="${commentError}" th:text="${commentError}"></p>
+    <form th:if="${loginMember != null}"
+          th:action="@{/posts/{postId}/comments(postId=${post.id})}" method="post">
+        <textarea name="content" maxlength="1000"></textarea>
+        <button type="submit" th:text="#{button.comment}">댓글 작성</button>
+    </form>
 </div>
 </body>
 </html>
