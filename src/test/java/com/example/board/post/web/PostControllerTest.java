@@ -170,7 +170,7 @@ class PostControllerTest {
         mockMvc.perform(get("/posts/999999999999999"))
                 .andExpect(status().isNotFound());
 
-        assertThat(redisTemplate.opsForZSet().score(RedisKeys.pendingViews(), "999999999999999"));
+        assertThat(redisTemplate.opsForZSet().score(RedisKeys.pendingViews(), "999999999999999")).isNull();
     }
 
     @Test
