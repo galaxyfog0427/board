@@ -15,7 +15,6 @@ Spring Boot와 MySQL을 사용해 백엔드 기본기를 학습하기 위한 게
 
 ### 핵심 아키텍처 결정
 
-- **세션 기반 인증 유지 + Spring Security 표준 필터 체인 도입** — SSR 구조에는 JWT보다 세션이 적합하다고 판단, 학습용 REST API(`/api/v1/posts`)에는 추후 JWT를 별도 SecurityFilterChain으로 도입 예정
 - **Repository 인터페이스/구현체 분리 설계**로 JDBC → JPA 전환을 Controller/Service 코드 변경 없이 구현체 교체만으로 수행
 - **N+1 문제**를 ToOne 관계 fetch join + `default_batch_fetch_size` 안전망으로 해결하고, `open-in-view=false`로 지연 로딩 위험 제거
 - **게시글 동시 수정 충돌**을 낙관적 락(`@Version`)으로 제어, 더티 체킹 타이밍 문제는 명시적 `flush()`로 해결
@@ -254,7 +253,7 @@ CREATE TABLE post_like (
 - Member.status를 String에서 MemberStatus enum으로 전환
 - DB DEFAULT 컬럼(status, created_at, updated_at, comment_count)에 의존하던 로직이 JPA에서는 깨지는 것을 확인, `@PrePersist`/`@PreUpdate`로 엔티티가 null로 넘어가지 않고 기본값을 직접 책임지도록 수정
 - MemberRepository, CommentRepository, PostRepository를 `JpaRepository` 상속으로 전환, 기존 JdbcTemplate 구현체는 빈 등록만 해제하고 참고용으로 보존
-- `CommentRepository.findByPostId`는 원본 정렬 순서 유지를 위해 `@Quary`로 직접 작성
+- `CommentRepository.findByPostId`는 원본 정렬 순서 유지를 위해 `@Query`로 직접 작성
 - `PostRepository.incrementCommentCount()`는 `@Modifying` 벌크 쿼리로 전환
 - `PostRepository.findAll()`을 인터페이스 내 `default` 메서드로 재정의하여 기존 정렬 기준(created_at DESC, post_id DESC) 유지
 - 게시글 수정 로직을 Repository의 명시적 update() 대신 변경 감지(더티 체킹) 기반으로 전환, 이를 위해 `PostService` 신설 (트랜잭션 경계와 `PostNotFoundException` 변환 책임을 기존 Repository에서 Service로 이동)
