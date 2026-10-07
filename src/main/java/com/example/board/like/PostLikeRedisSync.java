@@ -44,7 +44,7 @@ public class PostLikeRedisSync {
     public void onUnliked(PostUnlikedEvent event) {
         try {
             redisTemplate.execute(UNLIKE_SCRIPT,
-                    List.of(RedisKeys.postLikes(event.postId()), RedisKeys.dailyLikeRanking(event.likedData())),
+                    List.of(RedisKeys.postLikes(event.postId()), RedisKeys.dailyLikeRanking(event.likedDate())),
                     String.valueOf(event.memberId()), String.valueOf(event.postId()));
         } catch (DataAccessException e) {
             log.warn("[좋아요 취소 Redis 반영 실패] postId={}, cause={}", event.postId(), e.getMostSpecificCause().getMessage());

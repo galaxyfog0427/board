@@ -17,8 +17,8 @@ public final class RedisKeys {
     }
 
     // 랭킹: 일별 좋아요 증가량 Sorted Set (TTL 8일)
-    public static String dailyLikeRanking(LocalDate data) {
-        return PREFIX + "ranking:likes:" + data.format(DateTimeFormatter.BASIC_ISO_DATE);
+    public static String dailyLikeRanking(LocalDate date) {
+        return PREFIX + "ranking:likes:" + date.format(DateTimeFormatter.BASIC_ISO_DATE);
     }
 
     // 랭킹: 최근 7일 합산 결과 Sorted Set (1분마다 ZUNIONSTORE로 재생성)
