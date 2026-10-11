@@ -1,6 +1,5 @@
 package com.example.board.member;
 
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -12,14 +11,13 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/members")
 public class MemberController {
 
-    private final MemberRepository memberRepository;
+    private final MemberService memberService;
     private final LoginIdValidator loginIdValidator;
-    private final PasswordEncoder passwordEncoder;
 
-    public MemberController(MemberRepository memberRepository, LoginIdValidator loginIdValidator, PasswordEncoder passwordEncoder) {
-        this.memberRepository = memberRepository;
+    public MemberController(LoginIdValidator loginIdValidator,
+                            MemberService memberService) {
         this.loginIdValidator = loginIdValidator;
-        this.passwordEncoder = passwordEncoder;
+        this.memberService = memberService;
     }
 
     @InitBinder
@@ -39,14 +37,11 @@ public class MemberController {
             return "members/addForm";
         }
 
-        Member member = new Member(
-                null,
+        memberService.join(
                 memberJoinForm.getLoginId(),
-                passwordEncoder.encode(memberJoinForm.getPassword()),
-                memberJoinForm.getNickname(),
-                null, null
+                memberJoinForm.getPassword(),
+                memberJoinForm.getNickname()
         );
-        memberRepository.save(member);
         return "redirect:/login";
     }
 }
