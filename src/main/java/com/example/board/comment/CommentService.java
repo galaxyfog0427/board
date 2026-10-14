@@ -24,7 +24,6 @@ public class CommentService {
     @Transactional
     public Long addComment(Comment comment) {
         Long commentId = commentRepository.save(comment).getId();
-        validateForRollbackTest(comment);
         postRepository.incrementCommentCount(comment.getPost().getId());
         return commentId;
     }
@@ -37,13 +36,6 @@ public class CommentService {
         Member member = memberRepository.getReferenceById(memberId);
         Comment comment = new Comment(null, post, member, content);
         return addComment(comment);
-    }
-
-    // 트랜잭션 롤백 검증용
-    private void validateForRollbackTest(Comment comment) {
-        if (comment.getContent().equals("ROLLBACK_TEST")) {
-            throw new IllegalStateException("의도적으로 발생시킨 예외 (롤백 테스트용)");
-        }
     }
 
 }

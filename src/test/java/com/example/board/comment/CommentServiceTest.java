@@ -37,17 +37,4 @@ class CommentServiceTest {
         assertThat(foundPost.getCommentCount()).isOne();
     }
 
-    @Test
-    @DisplayName("댓글 작성 실패시 전체 롤백")
-    void commentFailed() {
-        Member savedMember = memberRepository.save(new Member(null, "writer2", "writer2!", "작성자2", null, null));
-        Post savedPost = postRepository.save(new Post(null, savedMember, "제목", "내용", null));
-
-        assertThatThrownBy(() ->
-                commentService.addComment(new Comment(null, savedPost, savedMember, "ROLLBACK_TEST"))
-        ).isInstanceOf(IllegalStateException.class);
-
-        Post foundPost = postRepository.findById(savedPost.getId()).get();
-        assertThat(foundPost.getCommentCount()).isZero();
-    }
 }
