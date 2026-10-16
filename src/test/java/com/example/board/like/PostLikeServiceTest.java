@@ -5,6 +5,7 @@ import com.example.board.member.MemberRepository;
 import com.example.board.post.domain.Post;
 import com.example.board.post.exception.PostNotFoundException;
 import com.example.board.post.repository.PostRepository;
+import com.example.board.support.IntegrationTestSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,7 @@ import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
 @Transactional
-class PostLikeServiceTest {
+class PostLikeServiceTest extends IntegrationTestSupport {
 
     @Autowired
     PostLikeService postLikeService;

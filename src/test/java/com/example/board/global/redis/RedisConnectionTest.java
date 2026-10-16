@@ -1,17 +1,17 @@
 package com.example.board.global.redis;
 
+import com.example.board.support.IntegrationTestSupport;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
-public class RedisConnectionTest {
+public class RedisConnectionTest extends IntegrationTestSupport {
 
     private static final String TEST_KEY = "board:test:ping";
 
@@ -21,13 +21,6 @@ public class RedisConnectionTest {
     @AfterEach
     void cleanUp() {
         redisTemplate.delete(TEST_KEY);
-    }
-
-    @Test
-    @DisplayName("테스트는 1번 DB를 사용한다")
-    void usesTestDatabase() {
-        LettuceConnectionFactory factory = (LettuceConnectionFactory) redisTemplate.getConnectionFactory();
-        assertThat(factory.getDatabase()).isEqualTo(1);
     }
 
     @Test

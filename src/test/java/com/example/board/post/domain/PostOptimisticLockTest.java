@@ -3,6 +3,7 @@ package com.example.board.post.domain;
 import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
 import com.example.board.post.repository.PostRepository;
+import com.example.board.support.IntegrationTestSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +13,7 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
-public class PostOptimisticLockTest {
+public class PostOptimisticLockTest extends IntegrationTestSupport {
 
     @Autowired
     PostRepository postRepository;

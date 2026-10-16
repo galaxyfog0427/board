@@ -2,6 +2,7 @@ package com.example.board.login;
 
 import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
+import com.example.board.support.IntegrationTestSupport;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-class LoginControllerTest {
+class LoginControllerTest extends IntegrationTestSupport {
 
     @Autowired
     MockMvc mockMvc;

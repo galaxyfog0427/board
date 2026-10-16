@@ -5,6 +5,7 @@ import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
 import com.example.board.post.domain.Post;
 import com.example.board.post.repository.PostRepository;
+import com.example.board.support.IntegrationTestSupport;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,7 +21,7 @@ import java.time.LocalDate;
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
-class PostLikedEventTest {
+class PostLikedEventTest extends IntegrationTestSupport {
 
     @Autowired
     PostLikeService postLikeService;

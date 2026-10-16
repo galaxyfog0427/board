@@ -3,6 +3,7 @@ package com.example.board.comment;
 import com.example.board.member.Member;
 import com.example.board.post.domain.Post;
 import com.example.board.post.repository.PostRepository;
+import com.example.board.support.IntegrationTestSupport;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.willThrow;
 
 @SpringBootTest
-public class CommentServiceRollbackTest {
+public class CommentServiceRollbackTest extends IntegrationTestSupport {
 
     @Autowired
     CommentService commentService;

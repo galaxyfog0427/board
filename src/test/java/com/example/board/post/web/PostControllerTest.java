@@ -7,6 +7,7 @@ import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
 import com.example.board.post.domain.Post;
 import com.example.board.post.repository.PostRepository;
+import com.example.board.support.IntegrationTestSupport;
 import com.example.board.view.ViewCountService;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.AfterEach;
@@ -33,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-class PostControllerTest {
+class PostControllerTest extends IntegrationTestSupport {
 
     @Autowired
     MockMvc mockMvc;

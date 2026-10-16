@@ -2,6 +2,7 @@ package com.example.board.view;
 
 import com.example.board.global.redis.RedisKeys;
 import com.example.board.post.dto.PostListItem;
+import com.example.board.support.IntegrationTestSupport;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,7 +16,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
-class ViewCountServiceTest {
+class ViewCountServiceTest extends IntegrationTestSupport {
 
     private static final Long POST_ID = 1L;
 

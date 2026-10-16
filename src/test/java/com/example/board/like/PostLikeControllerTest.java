@@ -5,6 +5,7 @@ import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
 import com.example.board.post.domain.Post;
 import com.example.board.post.repository.PostRepository;
+import com.example.board.support.IntegrationTestSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-class PostLikeControllerTest {
+class PostLikeControllerTest extends IntegrationTestSupport {
 
     @Autowired
     MockMvc mockMvc;

@@ -1,6 +1,7 @@
 package com.example.board.ranking;
 
 import com.example.board.global.redis.RedisKeys;
+import com.example.board.support.IntegrationTestSupport;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,7 +16,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
-class RankingAggregatorTest {
+class RankingAggregatorTest extends IntegrationTestSupport {
 
     private static final LocalDate TODAY = LocalDate.of(2026, 10, 4);
 

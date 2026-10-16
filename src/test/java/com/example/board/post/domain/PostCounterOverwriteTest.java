@@ -3,6 +3,7 @@ package com.example.board.post.domain;
 import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
 import com.example.board.post.repository.PostRepository;
+import com.example.board.support.IntegrationTestSupport;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,7 +14,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
-public class PostCounterOverwriteTest {
+public class PostCounterOverwriteTest extends IntegrationTestSupport {
 
     @Autowired
     PostRepository postRepository;

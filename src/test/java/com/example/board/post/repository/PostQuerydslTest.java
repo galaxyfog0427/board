@@ -4,6 +4,7 @@ package com.example.board.post.repository;
 import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
 import com.example.board.post.domain.Post;
+import com.example.board.support.IntegrationTestSupport;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.junit.jupiter.api.Test;
@@ -20,7 +21,7 @@ import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
 @Transactional
-public class PostQuerydslTest {
+public class PostQuerydslTest extends IntegrationTestSupport {
 
     @Autowired
     JPAQueryFactory queryFactory;

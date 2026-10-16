@@ -1,6 +1,7 @@
 package com.example.board.like;
 
 import com.example.board.global.redis.RedisKeys;
+import com.example.board.support.IntegrationTestSupport;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,7 +16,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
-class PostLikeRedisSyncTest {
+class PostLikeRedisSyncTest extends IntegrationTestSupport {
 
     private static final Long POST_ID = 1L;
     private static final Long MEMBER_ID = 7L;
