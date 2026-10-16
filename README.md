@@ -21,6 +21,7 @@ Spring Boot와 MySQL을 사용해 백엔드 기본기를 학습하기 위한 게
 - **CSRF는 활성화**하되, WebFlux·HTTP Basic·동시 세션 제어·OAuth2 소셜 로그인 등은 게시판 규모 대비 실익이 낮다고 판단해 의도적으로 배제
 - **Redis는 데이터 성격에 따라 원본 위치를 다르게** — 좋아요는 DB가 원본이고 Redis는 커밋 후 반영되는 사본, 조회수는 반영 전 증가분만 Redis에 모았다가 1분마다 DB에 일괄 반영, 세션은 Redis가 유일한 저장소
 - **Redis 장애가 서비스 장애로 번지지 않게** — 명령 타임아웃 500ms, 연결이 끊기면 즉시 거절, 사본 데이터는 DB 폴백. 단 세션은 폴백이 불가능한 단일 장애 지점(SPOF)임을 인지하고, 운영이라면 Sentinel 또는 관리형 다중 가용 영역 구성으로 이중화한다고 판단
+- **테스트는 운영과 같은 MySQL·Redis로** — Testcontainers로 Docker만 있으면 어디서든 실행되고, 스키마는 Flyway로 버전 관리. Redis 장애 시 폴백 동작은 Mockito로 장애를 재현해 검증
 
 ### ERD
 
@@ -82,6 +83,7 @@ erDiagram
 | view_count | BIGINT | 조회수 (Redis에 쌓인 증가분을 1분마다 반영, 기본값 0) |
 | created_at | DATETIME | 작성 시간 |
 | updated_at | DATETIME | 수정 시간 |
+| version | BIGINT | 낙관적 락 버전 (동시 수정 충돌 감지, 기본값 0) |
 
 ## Member 테이블
 | 컬럼 | 타입 | 설명 |
@@ -125,68 +127,10 @@ erDiagram
 
 `(post_id, member_id)` UNIQUE 제약으로 한 회원은 한 게시글에 한 번만 좋아요할 수 있다. 이 유니크 인덱스가 게시글별 좋아요 수 조회(`COUNT`, `GROUP BY`)도 함께 처리한다.
 
-## 현재 테이블 설계
-```sql
-CREATE TABLE member (
-    member_id BIGINT NOT NULL AUTO_INCREMENT,
-    login_id VARCHAR(50) NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    nickname VARCHAR(50) NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
-    withdrawn_at DATETIME NULL,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (member_id),
-    UNIQUE KEY uq_login_id (login_id)
-);
+## 테이블 정의
+정확한 DDL(컬럼 타입, 제약조건, 인덱스)의 원본은 Flyway 마이그레이션 파일입니다.
+→ [`src/main/resources/db/migration`](./src/main/resources/db/migration)
 
-CREATE TABLE post (
-    post_id BIGINT NOT NULL AUTO_INCREMENT,
-    member_id BIGINT NOT NULL,
-    title VARCHAR(200) NOT NULL,
-    content TEXT NOT NULL,
-    comment_count INT NOT NULL DEFAULT 0,
-    view_count BIGINT NOT NULL DEFAULT 0,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (post_id),
-    CONSTRAINT fk_post_member FOREIGN KEY (member_id) REFERENCES member (member_id)
-);
-
-CREATE TABLE comment (
-    comment_id BIGINT NOT NULL AUTO_INCREMENT,
-    post_id BIGINT NOT NULL,
-    member_id BIGINT NOT NULL,
-    content VARCHAR(1000) NOT NULL,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (comment_id),
-    CONSTRAINT fk_comment_post FOREIGN KEY (post_id) REFERENCES post (post_id),
-    CONSTRAINT fk_comment_member FOREIGN KEY (member_id) REFERENCES member (member_id)
-);
-
-CREATE TABLE post_file (
-    file_id BIGINT NOT NULL AUTO_INCREMENT,
-    post_id BIGINT NOT NULL,
-    upload_file_name VARCHAR(255) NOT NULL,
-    store_file_name VARCHAR(255) NOT NULL,
-    file_size BIGINT NOT NULL,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (file_id),
-    CONSTRAINT fk_post_file_post FOREIGN KEY (post_id) REFERENCES post (post_id)
-);
-
-CREATE TABLE post_like (
-    post_like_id BIGINT NOT NULL AUTO_INCREMENT,
-    post_id BIGINT NOT NULL,
-    member_id BIGINT NOT NULL,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (post_like_id),
-    UNIQUE KEY uk_post_like (post_id, member_id),
-    CONSTRAINT fk_post_like_post FOREIGN KEY (post_id) REFERENCES post (post_id),
-    CONSTRAINT fk_post_like_member FOREIGN KEY (member_id) REFERENCES member (member_id)
-);
-```
 
 ## 학습 진행 상황
 
@@ -320,7 +264,7 @@ CREATE TABLE post_like (
 #### Redis 도입 (조회수, 좋아요, 인기글 랭킹, 세션)
 - 『개발자를 위한 레디스』로 자료구조, 캐싱 전략, 영속성, 복제, Lua를 학습한 뒤 설계 원칙을 먼저 정하고 적용
     - 확인과 변경은 명령 하나로(check-then-act 금지), O(n) 명령 금지, 모든 키에 수명 지정(원본 키 제외), Redis에는 DB 커밋이 확정된 사실만 반영, Redis의 파생 데이터는 DB로 재구성 가능하게
-- 키 이름은 `RedisKeys` 한 곳에서만 생성(`board:` 접두사), 테스트는 Redis 1번 DB로 격리
+- 키 이름은 `RedisKeys` 한 곳에서만 생성(`board:` 접두사), 테스트는 Testcontainers의 일회용 Redis 사용
 - **조회수**: `SET NX EX 600`으로 10분 내 중복 조회 방지(회원은 id, 비회원은 UUID 쿠키) → Sorted Set에 증가분 누적 → 1분마다 `JdbcTemplate` 배치 UPDATE 후 읽은 만큼만 `ZINCRBY -n`으로 차감(그 사이 들어온 조회수 보존)
     - 화면 조회수 = DB 값 + Redis 증가분, 목록은 `ZMSCORE` 한 번으로 10개 조회
 - **좋아요**: `post_like` 테이블이 원본. `INSERT IGNORE`와 UNIQUE 제약으로 멱등 처리, 커밋 후(`@TransactionalEventListener(AFTER_COMMIT)`) Lua 스크립트로 좋아요 Set과 일별 랭킹을 원자적으로 반영
@@ -331,6 +275,7 @@ CREATE TABLE post_like (
 - **세션**: Spring Session으로 저장소를 Redis로 전환해 재시작 후에도 로그인 유지. 세션에는 엔티티 대신 회원 id, 로그인 id, 닉네임만 담은 직렬화 가능한 스냅샷을 저장하고 비밀번호는 인증 후 삭제
 - **장애 대응 실험**: Redis를 직접 중단해 요청당 약 1초 지연을 측정, 연결 끊김 시 즉시 거절하도록 바꿔 0ms로 개선. 장애 로그는 스택트레이스 대신 원인 한 줄로
 - 의도적으로 넣지 않은 것: 서킷 브레이커(Redis 하나에 대비 실익이 작음), 세션 Redis 이중화(학습 규모), 좋아요 수 반정규화(현재는 `COUNT`로 충분), 랭킹 재집계 배치
+- 조회수 반영 중 DB 커밋 후 Redis 차감이 실패하면, 그 묶음이 다음 주기에 한 번 더 더해질 수 있음(이중 가산). 막으려면 반영한 묶음을 DB 트랜잭션 안에 함께 기록하는 멱등 처리가 필요하지만, 발생 구간이 매우 좁고 학습 규모에 비해 과해 미적용
 
 #### Kafka (학습용, `study/kafka` 브랜치 — main 미반영)
 - board에는 Kafka가 꼭 필요한 기능이 없다고 판단해 main에 넣지 않고 별도 브랜치에서 학습
@@ -339,6 +284,21 @@ CREATE TABLE post_like (
 - 프로듀서와 컨슈머가 서로의 클래스를 참조하지 않고 토픽 이름과 JSON 형식만 공유하도록 분리
 - Kafka 장애 시 회원가입이 최대 60초 멈추지 않도록 `max.block.ms`를 1초로 제한
 - 알고 있는 한계: 커밋 후 발행 실패 시 메시지 유실(반드시 보내야 하는 메시지는 Transactional Outbox), 최소 한 번 전달로 인한 중복 처리 가능(컨슈머 멱등성). 다음 프로젝트에서 다룰 예정
+
+#### 테스트 보강
+- 기존 테스트 25개를 의존 대상별로 분류해 문제를 먼저 진단
+  - 23개가 로컬 MySQL·Redis에 묶여 다른 환경(CI 포함)에서 실행 불가
+  - 테스트 DB 스키마를 손으로 관리
+  - Redis 장애 대응 코드(catch) 12곳이 자동 테스트로 한 번도 실행되지 않음
+- **Mockito**: Redis 연결 실패를 재현해 사용자 요청 경로의 폴백 6곳(조회수 조회·목록 반영·증가, 좋아요 상태 조회·캐시 재구성, 인기글)을 단위 테스트로 검증
+  - 반환값이 없는 동작은 호출 여부로 검증 (중복 확인 실패 시 증가 명령 미전송, 인기글 장애 시 DB 미조회)
+  - 대상 코드의 catch를 일부러 제거해 테스트가 실패하는지 확인
+  - 스케줄러·이벤트 리스너의 나머지 6곳은 로그만 남기고 다음 주기나 다음 요청에서 다시 시도하는 구조라, 테스트로 지킬 동작이 없다고 판단해 생략
+- **댓글 롤백 테스트 재작성**: 운영 코드에 심어 둔 테스트 전용 분기를 제거하고 `@MockitoBean`으로 댓글 수 증가 실패를 재현. 테스트 트랜잭션 없이 저장된 댓글이 실제로 롤백되는지 DB에서 확인
+- **Flyway**: 현재 스키마를 실제 DB 덤프에서 추출해 V1 마이그레이션으로 기록하고, 기존 DB는 baseline으로 편입. Flyway가 스키마를 만들고 Hibernate는 `validate`로 검사만 담당
+- **Testcontainers**: MySQL·Redis를 static 싱글톤 컨테이너로 띄우고 `@ServiceConnection`으로 연결해, Docker만 있으면 전체 테스트 실행 가능
+  - H2 대신 실제 MySQL을 쓴 이유: `INSERT IGNORE`, `ON UPDATE CURRENT_TIMESTAMP`, Lua 스크립트처럼 운영 환경 고유의 동작을 그대로 검증하기 위해
+  - 컨테이너는 공유하고, 테스트 간 격리는 트랜잭션 롤백과 `@AfterEach` 정리로 유지
 
 ### 데이터베이스 설계
 - 개념적/논리적 모델링 설계 완료 (Member/Post/Comment 엔티티, 관계, 참여도, 식별 여부 확정)
@@ -375,6 +335,12 @@ CREATE TABLE post_like (
 - **원인**: 목록 화면에 `getReferenceById`로 만든 회원 프록시를 넘겼고, 화면 렌더링 시점(OSIV 비활성)에 프록시가 닉네임을 읽으려다 `LazyInitializationException` 발생. 테스트 설정만 OSIV가 켜져 있어 테스트에서는 재현되지 않음
 - **해결**: 세션의 회원 스냅샷(`MemberDetails`)을 그대로 화면에 전달. 테스트 OSIV 설정을 운영과 일치
 - **확인**: 로그인 상태 목록 테스트를 추가해 수정 전 실패, 수정 후 통과 확인
+
+### 롤백 테스트가 롤백 없이도 통과하던 문제
+- **문제**: `CommentService.addComment()`의 `@Transactional`을 지워도 롤백 테스트가 통과
+- **원인**: 예외가 댓글 수 증가 전에 발생해서 "댓글 수가 0"이라는 검증이 롤백과 무관하게 항상 참이었고, 테스트 클래스의 `@Transactional`이 서비스 트랜잭션을 감싸 실제 커밋·롤백이 일어나지 않았음
+- **해결**: 댓글 저장 후 증가 단계에서 예외를 재현(`@MockitoBean`), 테스트 트랜잭션 제거, 검증 대상을 "저장된 댓글이 DB에 남지 않았는가"로 변경
+- **확인**: `@Transactional`을 제거하면 새 테스트가 실패하는 것을 확인
 
 ## 설계 문서
 - 데이터베이스 논리적 모델링 설계 결정사항 [docs/design.md](./docs/design.md) 참고
