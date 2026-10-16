@@ -11,7 +11,7 @@ Spring Boot와 MySQL을 사용해 백엔드 기본기를 학습하기 위한 게
 
 ## 한눈에 보기
 
-세션 기반 인증 + JPA + Querydsl로 구성된 SSR 게시판입니다. 각 Phase마다 "왜 이 기술을, 왜 이 방식으로" 도입했는지 판단 근거를 남기는 것을 원칙으로 진행했습니다.
+세션 기반 인증 + JPA + Querydsl로 구성된 SSR 게시판입니다. 기술을 도입할 때마다 "왜 이 기술을, 왜 이 방식으로" 도입했는지 판단 근거를 남기는 것을 원칙으로 진행했습니다.
 
 ### 핵심 아키텍처 결정
 
@@ -278,6 +278,7 @@ erDiagram
 - 조회수 반영 중 DB 커밋 후 Redis 차감이 실패하면, 그 묶음이 다음 주기에 한 번 더 더해질 수 있음(이중 가산). 막으려면 반영한 묶음을 DB 트랜잭션 안에 함께 기록하는 멱등 처리가 필요하지만, 발생 구간이 매우 좁고 학습 규모에 비해 과해 미적용
 
 #### Kafka (학습용, `study/kafka` 브랜치 — main 미반영)
+- 코드: [`study/kafka` 브랜치](https://github.com/galaxyfog0427/board/tree/study/kafka)
 - board에는 Kafka가 꼭 필요한 기능이 없다고 판단해 main에 넣지 않고 별도 브랜치에서 학습
 - 로컬 Kafka 4.0(KRaft) 단일 브로커를 Docker Compose로 구성, 호스트용·컨테이너 내부용 리스너 분리
 - 회원가입 커밋 후(`@TransactionalEventListener(AFTER_COMMIT)`) `member.joined` 토픽에 회원 ID를 key로 발행 → 별도 패키지의 컨슈머가 환영 메일 발송(느린 외부 호출을 3초 대기로 흉내)
