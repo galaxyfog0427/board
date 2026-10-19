@@ -1,0 +1,11 @@
+.git
+.gradle
+.idea
+*.iml
+out
+build
+src/main/generated
+files
+files-test
+repomix-output.xml
+.env
