@@ -17,7 +17,7 @@ WORKDIR /app
 
 RUN groupadd --system app && useradd --system --gid app app
 
-COPY --from=build /app/build/libs/board-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=build /app/build/libs/board.jar app.jar
 
 USER app
 
