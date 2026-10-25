@@ -6,6 +6,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.UUID;
 
 @Component
@@ -35,11 +37,8 @@ public class LocalFileStore implements FileStore {
         return new File(fileDir, storeFileName).getAbsolutePath();
     }
 
-    private void ensureDirectoryExists() {
-        File dir = new File(fileDir).getAbsoluteFile();
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
+    private void ensureDirectoryExists() throws IOException {
+        Files.createDirectories(Path.of(fileDir));
     }
 
     private String createStoreFileName(String originalFilename) {
