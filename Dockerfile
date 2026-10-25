@@ -17,6 +17,8 @@ WORKDIR /app
 
 RUN groupadd --system app && useradd --system --gid app app
 
+RUN mkdir /app/files && chown app:app /app/files
+
 COPY --from=build /app/build/libs/board.jar app.jar
 
 USER app
