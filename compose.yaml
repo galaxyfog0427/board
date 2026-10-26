@@ -26,6 +26,8 @@ services:
 
   app:
     build: .
+    # Spring graceful shutdown 한도 (기본 30초)보다 길게 기다린 뒤 SIGKILL
+    stop_grace_period: 40s
     ports:
       - "8080:8080"
     environment:
