@@ -7,7 +7,7 @@ import org.testcontainers.mysql.MySQLContainer;
 public abstract class IntegrationTestSupport {
 
     @ServiceConnection
-    static final MySQLContainer MYSQL = new MySQLContainer("mysql:8.0.43");
+    static final MySQLContainer MYSQL = new MySQLContainer("mysql:8.4.13");
 
     @ServiceConnection(name = "redis")
     static final GenericContainer<?> REDIS = new GenericContainer<>("redis:8.10.2")
