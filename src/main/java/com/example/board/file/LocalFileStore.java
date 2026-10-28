@@ -1,6 +1,8 @@
 package com.example.board.file;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -32,9 +34,13 @@ public class LocalFileStore implements FileStore {
         return new UploadFile(originalFilename, storeFileName);
     }
 
-    @Override
-    public String getFullPath(String storeFileName) {
+    private String getFullPath(String storeFileName) {
         return new File(fileDir, storeFileName).getAbsolutePath();
+    }
+
+    @Override
+    public Resource load(String storeFileName) {
+        return new FileSystemResource(Path.of(fileDir, storeFileName));
     }
 
     private void ensureDirectoryExists() throws IOException {

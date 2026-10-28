@@ -1,5 +1,6 @@
 package com.example.board.post.repository;
 
+import com.example.board.member.Member;
 import com.example.board.post.dto.PostListItem;
 import com.example.board.post.domain.Post;
 import org.springframework.data.domain.Page;
@@ -40,4 +41,6 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostRepositor
             WHERE p.id in :ids
             """)
     List<PostListItem> findListItemsByIds(@Param("ids") List<Long> ids);
+
+    Member member(Member member);
 }
