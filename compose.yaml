@@ -42,6 +42,15 @@ services:
       redis:
         condition: service_healthy
 
+  localstack:
+    image: localstack/localstack:2026.10.4
+    profiles: ["s3"]
+    environment:
+      LOCALSTACK_AUTH_TOKEN: ${LOCALSTACK_AUTH_TOKEN}
+      SERVICES: s3
+    ports:
+      - "4566:4566"
+
 
 volumes:
   mysql-data:
