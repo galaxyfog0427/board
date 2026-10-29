@@ -34,6 +34,8 @@ services:
       DB_HOST: mysql
       REDIS_HOST: redis
       DB_PASSWORD: ${DB_PASSWORD}
+      FILE_STORE: ${FILE_STORE:-local}
+      S3_ENDPOINT: http://localstack:4566
     volumes:
       - app-files:/app/files
     depends_on:
@@ -41,6 +43,9 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      localstack:
+        condition: service_healthy
+        required: false
 
   localstack:
     image: localstack/localstack:2026.10.4
