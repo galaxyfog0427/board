@@ -1,6 +1,7 @@
 package com.example.board.file;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -12,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 @Component
+@ConditionalOnProperty(name = "board.file-store", havingValue = "local", matchIfMissing = true)
 public class LocalFileStore implements FileStore {
 
     @Value("${file.dir}")

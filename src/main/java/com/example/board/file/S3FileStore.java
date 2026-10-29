@@ -1,0 +1,54 @@
+package com.example.board.file;
+
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+
+import java.io.IOException;
+
+@Component
+@ConditionalOnProperty(name = "board.file-store", havingValue = "s3")
+public class S3FileStore implements FileStore {
+
+    private final S3Client s3Client;
+    private final String bucket;
+
+    public S3FileStore(S3Client s3Client, @Value("${board.s3.bucket}") String bucket) {
+        this.s3Client = s3Client;
+        this.bucket = bucket;
+    }
+
+    @PostConstruct
+    void verifyBucketExists() {
+        s3Client.headBucket(b -> b.bucket(bucket));
+    }
+
+    @Override
+    public UploadFile storeFile(MultipartFile multipartFile) throws IOException {
+        if (multipartFile.isEmpty()) {
+            return null;
+        }
+
+        String originalFilename = multipartFile.getOriginalFilename();
+        String storeFilename = StoreFileNames.create(originalFilename);
+
+        s3Client.putObject(
+                b -> b.bucket(bucket).key(storeFilename),
+                RequestBody.fromInputStream(multipartFile.getInputStream(), multipartFile.getSize()));
+
+        return new UploadFile(originalFilename, storeFilename);
+    }
+
+    @Override
+    public Resource load(String storeFileName) {
+        return new InputStreamResource(
+                s3Client.getObject(b -> b.bucket(bucket).key(storeFileName))
+        );
+    }
+}
