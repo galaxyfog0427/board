@@ -48,6 +48,10 @@ services:
     environment:
       LOCALSTACK_AUTH_TOKEN: ${LOCALSTACK_AUTH_TOKEN}
       SERVICES: s3
+      PERSISTENCE: 1
+    volumes:
+      - localstack-data:/var/lib/localstack
+      - ./docker/localstack/init-s3.sh:/etc/localstack/init/ready.d/init-s3.sh:ro
     ports:
       - "4566:4566"
 
@@ -56,3 +60,4 @@ volumes:
   mysql-data:
   redis-data:
   app-files:
+  localstack-data:
