@@ -10,7 +10,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.UUID;
 
 @Component
 public class LocalFileStore implements FileStore {
@@ -27,7 +26,7 @@ public class LocalFileStore implements FileStore {
         ensureDirectoryExists();
 
         String originalFilename = multipartFile.getOriginalFilename();
-        String storeFileName = createStoreFileName(originalFilename);
+        String storeFileName = StoreFileNames.create(originalFilename);
 
         multipartFile.transferTo(new File(getFullPath(storeFileName)));
 
@@ -45,16 +44,5 @@ public class LocalFileStore implements FileStore {
 
     private void ensureDirectoryExists() throws IOException {
         Files.createDirectories(Path.of(fileDir));
-    }
-
-    private String createStoreFileName(String originalFilename) {
-        String ext = extractExt(originalFilename);
-        String uuid = UUID.randomUUID().toString();
-        return uuid + "." + ext;
-    }
-
-    private String extractExt(String originalFilename) {
-        int pos = originalFilename.lastIndexOf(".");
-        return originalFilename.substring(pos + 1);
     }
 }
