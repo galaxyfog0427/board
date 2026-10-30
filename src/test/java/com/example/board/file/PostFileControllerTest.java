@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -75,7 +76,19 @@ class PostFileControllerTest extends IntegrationTestSupport {
                 .andExpect(content().contentType(MediaType.APPLICATION_OCTET_STREAM));
     }
 
-    private Long saveFileOf(String originFilename) throws IOException {
+    @Test
+    @DisplayName("디스크에 파일 내용은 없고, 데이터베이스에 메타데이터만 존재할 때 해당 파일 요청 시, NOT_FOUND(404)를 반환한다")
+    void storedFileNotFoundOnlyMetadata() throws Exception {
+        Long fileId = savePostFileMetadata(
+                "filename.png",
+                "missing-" + UUID.randomUUID() + ".png",
+                3L);
+
+        mockMvc.perform(get("/posts/files/" + fileId + "/view"))
+                .andExpect(status().isNotFound());
+    }
+
+    private Long savePostFileMetadata(String uploadFileName, String storeFileName, long size) {
         Member member = memberRepository.save(new Member(
                 null,
                 "test",
@@ -86,6 +99,19 @@ class PostFileControllerTest extends IntegrationTestSupport {
 
         Long postId = postRepository.save(new Post(null, member, "title", "content", null)).getId();
 
+        PostFile postFile = new PostFile(
+                null,
+                postId,
+                uploadFileName,
+                storeFileName,
+                size,
+                null
+        );
+
+        return postFileRepository.save(postFile);
+    }
+
+    private Long saveFileOf(String originFilename) throws IOException {
         MockMultipartFile multipartFile = new MockMultipartFile(
                 "files",
                 originFilename,
@@ -95,16 +121,10 @@ class PostFileControllerTest extends IntegrationTestSupport {
         UploadFile uploadFile = fileStore.storeFile(multipartFile);
         storedFileNames.add(uploadFile.getStoreFileName());
 
-        PostFile postFile = new PostFile(
-                null,
-                postId,
+        return savePostFileMetadata(
                 uploadFile.getUploadFileName(),
                 uploadFile.getStoreFileName(),
-                multipartFile.getSize(),
-                null
-        );
-
-        return postFileRepository.save(postFile);
+                multipartFile.getSize());
     }
 
 }

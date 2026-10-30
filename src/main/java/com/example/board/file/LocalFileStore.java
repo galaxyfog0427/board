@@ -1,5 +1,6 @@
 package com.example.board.file;
 
+import com.example.board.file.exception.StoredFileNotFoundException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.FileSystemResource;
@@ -41,7 +42,11 @@ public class LocalFileStore implements FileStore {
 
     @Override
     public Resource load(String storeFileName) {
-        return new FileSystemResource(Path.of(fileDir, storeFileName));
+        Resource resource = new FileSystemResource(Path.of(fileDir, storeFileName));
+        if (!resource.exists()) {
+            throw new StoredFileNotFoundException(storeFileName);
+        }
+        return resource;
     }
 
     private void ensureDirectoryExists() throws IOException {

@@ -1,5 +1,6 @@
 package com.example.board.file;
 
+import com.example.board.file.exception.StoredFileNotFoundException;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
 import java.io.IOException;
 
@@ -47,8 +49,12 @@ public class S3FileStore implements FileStore {
 
     @Override
     public Resource load(String storeFileName) {
-        return new InputStreamResource(
-                s3Client.getObject(b -> b.bucket(bucket).key(storeFileName))
-        );
+        try {
+            return new InputStreamResource(
+                    s3Client.getObject(b -> b.bucket(bucket).key(storeFileName))
+            );
+        } catch (NoSuchKeyException e) {
+            throw new StoredFileNotFoundException(storeFileName, e);
+        }
     }
 }
