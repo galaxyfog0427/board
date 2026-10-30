@@ -1,5 +1,6 @@
 package com.example.board.file;
 
+import com.example.board.file.exception.PostFileNotFoundException;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -27,7 +28,8 @@ public class PostFileController {
 
     @GetMapping("/{fileId}/view")
     public ResponseEntity<Resource> viewFile(@PathVariable Long fileId) {
-        PostFile postFile = postFileRepository.findById(fileId);
+        PostFile postFile = postFileRepository.findById(fileId)
+                .orElseThrow(() -> new PostFileNotFoundException(fileId));
         Resource resource = fileStore.load(postFile.getStoreFileName());
         return ResponseEntity.ok()
                 .contentType(resolveMediaType(postFile.getStoreFileName()))
@@ -36,7 +38,8 @@ public class PostFileController {
 
     @GetMapping("/{fileId}/download")
     public ResponseEntity<Resource> downloadFile(@PathVariable Long fileId) {
-        PostFile postFile = postFileRepository.findById(fileId);
+        PostFile postFile = postFileRepository.findById(fileId)
+                .orElseThrow(() -> new PostFileNotFoundException(fileId));
         Resource resource = fileStore.load(postFile.getStoreFileName());
         String encodedUploadFileName = UriUtils.encode(postFile.getUploadFileName(), StandardCharsets.UTF_8);
         String contentDisposition = "attachment; filename=\"" + encodedUploadFileName + "\"";

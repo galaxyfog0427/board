@@ -1,5 +1,6 @@
 package com.example.board.global.exception;
 
+import com.example.board.file.exception.PostFileNotFoundException;
 import com.example.board.file.exception.StoredFileNotFoundException;
 import com.example.board.post.exception.PostEditConflictException;
 import com.example.board.post.exception.PostNotFoundException;
@@ -41,6 +42,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler
     public ModelAndView handleStoredFileNotFound(StoredFileNotFoundException e) {
         log.error("[StoredFileNotFoundException] {}", e.getMessage());
+        ModelAndView mav = new ModelAndView("error/4xx");
+        mav.setStatus(HttpStatus.NOT_FOUND);
+        return mav;
+    }
+
+    @ExceptionHandler
+    public ModelAndView handlePostFileNotFound(PostFileNotFoundException e) {
+        log.warn("[PostFileNotFoundException] {}", e.getMessage());
         ModelAndView mav = new ModelAndView("error/4xx");
         mav.setStatus(HttpStatus.NOT_FOUND);
         return mav;

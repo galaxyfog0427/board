@@ -88,6 +88,13 @@ class PostFileControllerTest extends IntegrationTestSupport {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    @DisplayName("존재하지 않는 파일을 요청 시, NOT_FOUND(404)를 반환한다")
+    void requestNotExistPostFile() throws Exception {
+        mockMvc.perform(get("/posts/files/999999999/view"))
+                .andExpect(status().isNotFound());
+    }
+
     private Long savePostFileMetadata(String uploadFileName, String storeFileName, long size) {
         Member member = memberRepository.save(new Member(
                 null,

@@ -1,6 +1,7 @@
 package com.example.board.file;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface PostFileRepository {
 
@@ -8,5 +9,5 @@ public interface PostFileRepository {
 
     List<PostFile> findByPostId(Long postId);
 
-    PostFile findById(Long fileId);
+    Optional<PostFile> findById(Long fileId);
 }

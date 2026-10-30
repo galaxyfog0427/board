@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class JdbcTemplatePostFileRepository implements PostFileRepository {
@@ -52,14 +53,16 @@ public class JdbcTemplatePostFileRepository implements PostFileRepository {
     }
 
     @Override
-    public PostFile findById(Long fileId) {
+    public Optional<PostFile> findById(Long fileId) {
         String sql = """
                 SELECT file_id, post_id, upload_file_name, store_file_name, file_size, created_at
                 FROM post_file
                 WHERE file_id = ?
                 """;
 
-        return template.queryForObject(sql, postFileRowMapper(), fileId);
+        return template.query(sql, postFileRowMapper(), fileId)
+                .stream()
+                .findFirst();
     }
 
     private RowMapper<PostFile> postFileRowMapper() {
