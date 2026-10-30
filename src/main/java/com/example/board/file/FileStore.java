@@ -15,4 +15,6 @@ public interface FileStore {
      */
     Resource load(String storeFileName);
 
+    void delete(String storeFileName);
+
 }

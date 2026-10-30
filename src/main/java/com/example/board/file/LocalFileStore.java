@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -30,10 +31,11 @@ public class LocalFileStore implements FileStore {
 
         String originalFilename = multipartFile.getOriginalFilename();
         String storeFileName = StoreFileNames.create(originalFilename);
+        long fileSize = multipartFile.getSize();
 
         multipartFile.transferTo(new File(getFullPath(storeFileName)));
 
-        return new UploadFile(originalFilename, storeFileName);
+        return new UploadFile(originalFilename, storeFileName, fileSize);
     }
 
     private String getFullPath(String storeFileName) {
@@ -47,6 +49,15 @@ public class LocalFileStore implements FileStore {
             throw new StoredFileNotFoundException(storeFileName);
         }
         return resource;
+    }
+
+    @Override
+    public void delete(String storeFileName) {
+        try {
+            Files.deleteIfExists(Path.of(fileDir, storeFileName));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     private void ensureDirectoryExists() throws IOException {

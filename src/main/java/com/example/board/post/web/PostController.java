@@ -21,6 +21,7 @@ import com.example.board.ranking.PopularPostService;
 import com.example.board.view.ViewCountService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -35,8 +36,10 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Controller
 @RequestMapping("/posts")
 public class PostController {
@@ -137,24 +140,22 @@ public class PostController {
                 postSaveForm.getTitle(),
                 postSaveForm.getContent(),
                 null);
-        Long savedPostId = postService.save(post);
 
-        if (postSaveForm.getFiles() != null) {
-            for (MultipartFile multipartFile : postSaveForm.getFiles()) {
-                if (multipartFile.isEmpty()) {
-                    continue;
+        List<UploadFile> uploadFiles = new ArrayList<>();
+        Long savedPostId;
+        try {
+            if (postSaveForm.getFiles() != null) {
+                for (MultipartFile multipartFile : postSaveForm.getFiles()) {
+                    if (multipartFile.isEmpty()) {
+                        continue;
+                    }
+                    uploadFiles.add(fileStore.storeFile(multipartFile));
                 }
-                UploadFile uploadFile = fileStore.storeFile(multipartFile);
-                PostFile postFile = new PostFile(
-                        null,
-                        savedPostId,
-                        uploadFile.getUploadFileName(),
-                        uploadFile.getStoreFileName(),
-                        multipartFile.getSize(),
-                        null
-                );
-                postFileRepository.save(postFile);
             }
+            savedPostId = postService.saveWithFiles(post, uploadFiles);
+        } catch (IOException | RuntimeException e) {
+            deleteStoredFile(uploadFiles);
+            throw e;
         }
 
         redirectAttributes.addAttribute("postId", savedPostId);
@@ -200,5 +201,15 @@ public class PostController {
 
         postService.editPost(postId, postEditForm.getTitle(), postEditForm.getContent());
         return "redirect:/posts/{postId}";
+    }
+
+    private void deleteStoredFile(List<UploadFile> uploadFiles) {
+        for (UploadFile uploadFile : uploadFiles) {
+            try {
+                fileStore.delete(uploadFile.getStoreFileName());
+            } catch (RuntimeException e) {
+                log.error("[고아 파일] 보상 삭제 실패: {}", uploadFile.getStoreFileName(), e);
+            }
+        }
     }
 }

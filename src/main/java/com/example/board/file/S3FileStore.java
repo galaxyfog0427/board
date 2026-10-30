@@ -39,12 +39,20 @@ public class S3FileStore implements FileStore {
 
         String originalFilename = multipartFile.getOriginalFilename();
         String storeFilename = StoreFileNames.create(originalFilename);
+        long fileSize = multipartFile.getSize();
 
         s3Client.putObject(
                 b -> b.bucket(bucket).key(storeFilename),
                 RequestBody.fromInputStream(multipartFile.getInputStream(), multipartFile.getSize()));
 
-        return new UploadFile(originalFilename, storeFilename);
+        return new UploadFile(originalFilename, storeFilename, fileSize);
+    }
+
+    @Override
+    public void delete(String storeFileName) {
+        s3Client.deleteObject(
+                b -> b.bucket(bucket).key(storeFileName)
+        );
     }
 
     @Override
