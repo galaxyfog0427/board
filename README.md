@@ -2,12 +2,17 @@
 
 Spring Boot와 MySQL을 사용해 백엔드 기본기를 학습하기 위한 게시판 프로젝트입니다.
 
+[![CI](https://github.com/galaxyfog0427/board/actions/workflows/ci.yml/badge.svg)](https://github.com/galaxyfog0427/board/actions/workflows/ci.yml)
 ![Java](https://img.shields.io/badge/Java-17-orange)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.0-brightgreen)
-![MySQL](https://img.shields.io/badge/MySQL-8-blue)
+![MySQL](https://img.shields.io/badge/MySQL-8.4-blue)
 ![Spring Security](https://img.shields.io/badge/Spring%20Security-enabled-brightgreen)
 ![JPA](https://img.shields.io/badge/JPA-Querydsl-lightgrey)
 ![Redis](https://img.shields.io/badge/Redis-Lettuce-red)
+![Docker](https://img.shields.io/badge/Docker-Compose-blue)
+![S3](https://img.shields.io/badge/AWS%20S3-LocalStack-yellow)
+
+이 프로젝트는 각각의 기술 스택 강의를 학습 후 게시판이라는 프로젝트로 녹여 만드는 데서 시작했습니다. 기능을 하나씩 붙이는 동안 테스트는 늘 통과했습니다. 그런데 Redis와 MySQL을 일부러 멈춰 보자, 테스트가 잡지 못한 문제가 연달아 나왔습니다. 서버 에러가 로그인 화면으로 보였고, 요청 하나가 30초씩 매달렸고, 게시글만 저장되고 첨부파일은 사라졌습니다. 그때부터 관심이 "기능이 동작하는가"에서 "부품이 고장 났을 때 사용자와 운영자에게 무엇이 보이는가"로 옮겨 갔습니다. 아래 [문제 해결 기록](#문제-해결-기록)은 대부분 그 간격에서 나왔습니다.
 
 ## 한눈에 보기
 
@@ -21,7 +26,48 @@ Spring Boot와 MySQL을 사용해 백엔드 기본기를 학습하기 위한 게
 - **CSRF는 활성화**하되, WebFlux·HTTP Basic·동시 세션 제어·OAuth2 소셜 로그인 등은 게시판 규모 대비 실익이 낮다고 판단해 의도적으로 배제
 - **Redis는 데이터 성격에 따라 원본 위치를 다르게** — 좋아요는 DB가 원본이고 Redis는 커밋 후 반영되는 사본, 조회수는 반영 전 증가분만 Redis에 모았다가 1분마다 DB에 일괄 반영, 세션은 Redis가 유일한 저장소
 - **Redis 장애가 서비스 장애로 번지지 않게** — 명령 타임아웃 500ms, 연결이 끊기면 즉시 거절, 사본 데이터는 DB 폴백. 단 세션은 폴백이 불가능한 단일 장애 지점(SPOF)임을 인지하고, 운영이라면 Sentinel 또는 관리형 다중 가용 영역 구성으로 이중화한다고 판단
+- **장애는 빨리, 숨기지 않고 실패하게** — DB 커넥션 대기를 30초에서 3초로 줄이고, 서버 에러가 로그인 화면으로 위장되던 문제를 제거. 없는 파일은 원인에 따라 로그 레벨을 나눠 404로 응답(첨부 정보가 없으면 WARN, 정보는 있는데 파일이 없으면 데이터 불일치이므로 ERROR)
+- **파일 저장소는 인터페이스 뒤로** — `FileStore`가 디스크 경로 대신 `Resource`를 돌려주게 바꿔, 디스크(`LocalFileStore`)와 S3(`S3FileStore`)를 설정값 하나로 전환. 컨트롤러는 어느 저장소인지 모름
+- **반쪽 저장 대신 고아 파일** — DB와 파일 저장소는 한 트랜잭션으로 묶을 수 없으므로, 파일을 먼저 저장하고 게시글과 첨부 정보는 한 트랜잭션으로 저장. 실패하면 올린 파일을 보상 삭제해서, 남을 수 있는 반쪽은 사용자에게 보이지 않는 고아 파일뿐
 - **테스트는 운영과 같은 MySQL·Redis로** — Testcontainers로 Docker만 있으면 어디서든 실행되고, 스키마는 Flyway로 버전 관리. Redis 장애 시 폴백 동작은 Mockito로 장애를 재현해 검증
+- **Docker Compose로 한 번에 실행** — app·MySQL·Redis(선택: LocalStack)를 compose로 구성. 멀티 스테이지 빌드, 비루트 사용자, healthcheck 기반 기동 순서, graceful shutdown
+- **push마다 깨끗한 환경에서 검증** — GitHub Actions에서 전체 테스트를 돌리고, 통과한 커밋만 이미지를 빌드
+
+## 실행 방법
+
+필요한 것은 Docker(Compose 포함)뿐입니다.
+
+### 기본 실행 (첨부파일은 디스크에 저장)
+
+```bash
+cp .env.example .env      # DB_PASSWORD에 원하는 값 입력
+docker compose up -d --build
+```
+
+http://localhost:8080 으로 접속합니다.
+
+### S3 모드 (LocalStack, 선택)
+
+[LocalStack](https://www.localstack.cloud/) 인증 토큰이 필요합니다. `.env`에 아래 두 줄을 추가합니다.
+
+```
+LOCALSTACK_AUTH_TOKEN=발급받은_토큰
+FILE_STORE=s3
+```
+
+```bash
+docker compose --profile s3 up -d --build
+```
+
+LocalStack이 준비되면 `board-files` 버킷을 자동으로 만들고, 데이터는 볼륨에 보존합니다. 토큰이 없으면 이 단계는 건너뛰면 되고, 기본 실행은 그대로 동작합니다.
+
+### 테스트
+
+```bash
+./gradlew test
+```
+
+Docker만 켜져 있으면 Testcontainers가 MySQL·Redis를 띄워서 실행합니다. 환경 변수(`.env`)는 필요 없습니다. main에 push하거나 PR을 올리면 GitHub Actions가 같은 테스트를 자동으로 실행합니다.
 
 ### ERD
 
@@ -113,7 +159,7 @@ erDiagram
 | file_id | BIGINT | 파일 식별자, PK, AUTO_INCREMENT |
 | post_id | BIGINT | 게시글, FK (post.post_id 참조) |
 | upload_file_name | VARCHAR(255) | 사용자가 업로드한 원본 파일명 |
-| store_file_name | VARCHAR(255) | 서버 내부 저장용 파일명 (UUID, 충돌 방지) |
+| store_file_name | VARCHAR(255) | 저장소 안의 파일명 (UUID + 원본 확장자). 디스크의 파일명이자 S3의 키 |
 | file_size | BIGINT | 파일 크기 (byte) |
 | created_at | DATETIME | 업로드 시간 |
 
@@ -263,14 +309,14 @@ erDiagram
 
 #### Redis 도입 (조회수, 좋아요, 인기글 랭킹, 세션)
 - 『개발자를 위한 레디스』로 자료구조, 캐싱 전략, 영속성, 복제, Lua를 학습한 뒤 설계 원칙을 먼저 정하고 적용
-    - 확인과 변경은 명령 하나로(check-then-act 금지), O(n) 명령 금지, 모든 키에 수명 지정(원본 키 제외), Redis에는 DB 커밋이 확정된 사실만 반영, Redis의 파생 데이터는 DB로 재구성 가능하게
+  - 확인과 변경은 명령 하나로(check-then-act 금지), O(n) 명령 금지, 모든 키에 수명 지정(원본 키 제외), Redis에는 DB 커밋이 확정된 사실만 반영, Redis의 파생 데이터는 DB로 재구성 가능하게
 - 키 이름은 `RedisKeys` 한 곳에서만 생성(`board:` 접두사), 테스트는 Testcontainers의 일회용 Redis 사용
 - **조회수**: `SET NX EX 600`으로 10분 내 중복 조회 방지(회원은 id, 비회원은 UUID 쿠키) → Sorted Set에 증가분 누적 → 1분마다 `JdbcTemplate` 배치 UPDATE 후 읽은 만큼만 `ZINCRBY -n`으로 차감(그 사이 들어온 조회수 보존)
-    - 화면 조회수 = DB 값 + Redis 증가분, 목록은 `ZMSCORE` 한 번으로 10개 조회
+  - 화면 조회수 = DB 값 + Redis 증가분, 목록은 `ZMSCORE` 한 번으로 10개 조회
 - **좋아요**: `post_like` 테이블이 원본. `INSERT IGNORE`와 UNIQUE 제약으로 멱등 처리, 커밋 후(`@TransactionalEventListener(AFTER_COMMIT)`) Lua 스크립트로 좋아요 Set과 일별 랭킹을 원자적으로 반영
-    - 상세 페이지는 Set 캐시(1시간)로 좋아요 수와 내 상태를 한 번에 조회, 없으면 DB에서 재구성. 좋아요 0개 글도 캐시되도록 센티넬 멤버 사용
-    - 목록의 좋아요 수는 Redis 대신 DB `GROUP BY` 한 방(`SCARD`가 "캐시 없음"과 "0개"를 구분하지 못해 설계 변경)
-    - 요청 결과가 캐시와 어긋나면(이미 누름, 이미 취소) 캐시를 삭제해 다음 조회에서 재구성되도록 자가 복구
+  - 상세 페이지는 Set 캐시(1시간)로 좋아요 수와 내 상태를 한 번에 조회, 없으면 DB에서 재구성. 좋아요 0개 글도 캐시되도록 센티넬 멤버 사용
+  - 목록의 좋아요 수는 Redis 대신 DB `GROUP BY` 한 방(`SCARD`가 "캐시 없음"과 "0개"를 구분하지 못해 설계 변경)
+  - 요청 결과가 캐시와 어긋나면(이미 누름, 이미 취소) 캐시를 삭제해 다음 조회에서 재구성되도록 자가 복구
 - **인기글 랭킹**: 일별 Sorted Set(8일 수명) → 1분마다 최근 7일을 `ZUNIONSTORE`로 합산(결과 키 5분 수명, 멱등) → 상위 10개를 DB와 대조해 표시
 - **세션**: Spring Session으로 저장소를 Redis로 전환해 재시작 후에도 로그인 유지. 세션에는 엔티티 대신 회원 id, 로그인 id, 닉네임만 담은 직렬화 가능한 스냅샷을 저장하고 비밀번호는 인증 후 삭제
 - **장애 대응 실험**: Redis를 직접 중단해 요청당 약 1초 지연을 측정, 연결 끊김 시 즉시 거절하도록 바꿔 0ms로 개선. 장애 로그는 스택트레이스 대신 원인 한 줄로
@@ -301,6 +347,38 @@ erDiagram
   - H2 대신 실제 MySQL을 쓴 이유: `INSERT IGNORE`, `ON UPDATE CURRENT_TIMESTAMP`, Lua 스크립트처럼 운영 환경 고유의 동작을 그대로 검증하기 위해
   - 컨테이너는 공유하고, 테스트 간 격리는 트랜잭션 롤백과 `@AfterEach` 정리로 유지
 
+#### Docker 컨테이너화
+- 멀티 스테이지 빌드: JDK 이미지에서 빌드하고 JRE 이미지로 실행해 이미지 크기와 공격 표면(컴파일러 등 실행에 불필요한 도구)을 줄임
+- 의존성 다운로드를 소스 복사보다 먼저 두어 레이어 캐시 활용 (소스만 바꾼 재빌드 54.9초 → 19.7초)
+- 비루트 사용자(`app`)로 실행하고, 업로드 폴더를 이미지에서 미리 만들어 소유권을 `app`에게 부여
+- exec 형식 `ENTRYPOINT`로 java가 PID 1이 되어 종료 신호(SIGTERM)를 직접 받음. Spring graceful shutdown(30초)보다 compose의 `stop_grace_period`(40초)를 길게 잡아 처리 중인 요청을 끝내고 종료
+- Docker Compose로 app·MySQL·Redis 구성
+  - 컨테이너끼리는 서비스 이름으로 접속(사용자 정의 네트워크의 내장 DNS). 컨테이너 안의 `localhost`는 자기 자신이라는 점을 직접 겪고 정리
+  - MySQL·Redis에 healthcheck를 두고 `depends_on: condition: service_healthy`로 기동 순서 보장
+  - 비밀번호는 `.env`(커밋 제외)로 주입하고 `.env.example`만 커밋
+- 설정값은 이미지 밖에서 주입: 기본값은 `application.properties`의 `${DB_HOST:localhost}` 형태로, 환경별 값은 환경 변수로. 이미지는 하나, 환경 차이는 바깥에서
+- Redis 운영 설정 파일 분리: AOF `everysec` + RDB 스냅샷, `maxmemory 256mb` + `noeviction`, 데이터는 볼륨에 보존
+- MySQL 8.0 → 8.4 업그레이드: 되돌릴 수 없는 업그레이드라 `mysqldump`로 논리 백업을 먼저 받고 진행. Testcontainers의 MySQL 버전도 운영과 맞춤
+
+#### 파일 저장소 추상화와 S3 (LocalStack)
+- **추상화 누수 수정**: `FileStore.getFullPath()`가 디스크 경로를 돌려줘서 컨트롤러가 `"file:" + 경로`로 디스크를 직접 열고 있었음. S3로 바꾸면 컨트롤러까지 깨지는 구조라 `Resource load(String storeFileName)`로 변경
+  - `FileUrlResource` 대신 `FileSystemResource`를 고른 이유: 체크 예외(`MalformedURLException`)가 없어 인터페이스에 구현 사정이 새지 않음
+  - 트레이드오프: 인터페이스가 Spring의 `Resource`에 의존. 프로젝트가 Spring을 떠날 일은 없고 저장소는 실제로 바뀌므로 수용
+- **설정값 하나로 저장소 전환**: `board.file-store=${FILE_STORE:local}`과 `@ConditionalOnProperty`. 값이 없으면 디스크(`matchIfMissing`), `s3`면 S3. 오타가 나면 어느 쪽도 등록되지 않아 앱이 시작 단계에서 실패(조용히 디스크로 넘어가지 않음)
+- **LocalStack 구성**: compose의 `profiles: ["s3"]`로 분리해, 토큰이 없는 사람은 기본 실행만으로 동작. 이미지는 숫자 태그로 고정(`2026.10.4`)
+  - 버킷 자동 생성: 준비 완료 시 실행되는 스크립트에서 버킷이 있는지 먼저 확인하고 없을 때만 생성(여러 번 실행해도 결과가 같게)
+  - 데이터 보존: 볼륨 연결. DB만 남고 저장소가 비면 개발 환경에서만 깨진 첨부가 생기므로 운영 S3와 같은 조건으로 맞춤
+- **S3FileStore**: AWS SDK v2. 앱이 시작할 때 `headBucket`으로 버킷을 확인해 없으면 시작 실패. `endpointOverride`, `forcePathStyle`, 테스트용 자격 증명은 LocalStack 전용 설정
+- **저장 파일 이름 생성 분리**(`StoreFileNames`): 두 구현의 중복을 없애면서 확장자가 없는 이름(`README`), 점으로 끝나는 이름(`cat.`), `null`을 처리하지 못하던 버그를 함께 수정. `@ParameterizedTest`로 검증
+- **저장소 이전**: 디스크 모드에서 올린 첨부를 S3 모드에서 열면 깨짐. 저장 파일 이름이 곧 S3 키라서, 파일을 같은 이름으로 버킷에 복사(`aws s3 sync`)하는 것만으로 DB를 한 줄도 고치지 않고 복구
+
+#### CI (GitHub Actions)
+- `.github/workflows/ci.yml`: main push와 PR마다 실행
+- `test` 잡: 코드 받기 → JDK 17(temurin, Dockerfile의 실행 이미지와 같은 배포판) → Gradle 준비(의존성 캐시, wrapper 검증) → `./gradlew test`. 러너에 Docker가 있어 Testcontainers가 그대로 동작
+- `build-image` 잡: `needs: test`로 테스트가 성공한 커밋만 이미지를 빌드(`board:<커밋 ID>`). 레지스트리에는 올리지 않고 Dockerfile이 깨지지 않았는지만 검사
+- 워크플로 권한은 `contents: read`만(최소 권한). 액션은 Marketplace의 최신 메이저 버전으로 고정
+- 올리기 전에 로컬에서 CI 조건을 흉내 냄: 환경 변수를 지운 채 `./gradlew test --rerun-tasks`로 실행(Gradle이 입력 변화가 없다며 테스트를 건너뛰는 `up-to-date`를 피하기 위해), `gradlew` 실행 권한(`100755`) 확인
+
 ### 데이터베이스 설계
 - 개념적/논리적 모델링 설계 완료 (Member/Post/Comment 엔티티, 관계, 참여도, 식별 여부 확정)
 - 물리적 모델링 완료 (데이터 타입, 제약조건, 역정규화 확정)
@@ -318,6 +396,7 @@ erDiagram
 - **원인**: Lettuce가 연결이 끊긴 동안 명령을 버퍼에 쌓고 재연결을 기다림. 명령 2개가 각각 타임아웃 500ms를 기다림
 - **해결**: 연결이 끊기면 명령을 즉시 거절하도록 설정(`REJECT_COMMANDS`), 장애 로그도 원인 한 줄로 축약
 - **확인**: 로그 타임스탬프로 실패 간격 500ms → 0ms 측정, Redis 재기동 후 자동 재연결 확인
+- **덧붙여**: 타임아웃 500ms(Lettuce 기본 60초에서 줄인 값)는 즉시 거절과 별개로 유지. 즉시 거절은 "끊긴 걸 아는" 경우만 막고, 연결은 살아 보이는데 응답이 없는 경우(무거운 명령, 감지되지 않은 네트워크 단절)는 타임아웃이 기다림의 상한
 
 ### 좋아요 동시 요청 문제
 - **문제**: 같은 회원의 동시 좋아요 요청이 중복 저장 예외를 내고, 동시 취소 요청은 랭킹 점수를 요청 수만큼 깎을 수 있음
@@ -345,10 +424,62 @@ erDiagram
 
 ### 서버 에러가 로그인 화면으로 위장되던 문제
 - **문제**: DB 장애 중에 비로그인 사용자가 목록에 접근하면 에러 화면이 아닌 로그인 화면이 떠서, 사용자에게 장애 사실 자체가 드러나지 않았음. 장애 중에도 요청마다 Redis에 쓸모없는 세션이 생성됨
+- **처음 가설**: 원인을 처음에는 "에러가 나면 `/error`로 리다이렉트되는데 그게 막힌다"로 이해했으나, 로그를 확인하며 리다이렉트가 아니라 서버 안에서의 내부 전달(forward)이라는 점을 바로잡음
 - **원인**: 처리되지 않은 예외가 나면 톰캣이 `/error`로 내부 전달하는데, `SecurityConfig`의 `permitAll()`에 `/error`가 없어서 Security에 막혀 `DispatcherServlet`까지 오지 못하고 로그인 페이지로 리다이렉트됨
 - **테스트가 못 잡은 이유**: 기존 404 같은 예외는 `GlobalExceptionHandler`가 에러 화면을 직접 돌려줘서 `/error`를 거치지 않았고, `MockMvc`는 실제 톰캣이 아니라 예외가 나도 `/error`로 내부 전달하지 않음
 - **해결**: `SecurityConfig`의 `permitAll()`에 `/error`를 추가해 로그인하지 않아도 에러 화면을 볼 수 있게 수정
 - **확인**: 로그인 없이 `/error`에 접근하는 `MockMvc` 테스트로 수정 전 302(로그인 페이지), 수정 후 500을 확인. 실제 컨테이너에서도 DB를 중지한 뒤 `curl -i -H "Accept: text/html"`로 500 에러 화면이 뜨고 세션이 생성되지 않는 것을 확인
+
+### DB 장애 시 요청이 30초씩 매달리던 문제
+- **문제**: 앱이 떠 있는 중에 MySQL을 멈추고 목록을 요청하자 응답이 30초 뒤에 옴(로그: `request timed out after 30007ms`). 위의 "로그인 화면 위장" 문제와 같은 실험에서 함께 발견
+- **원인**: 요청 스레드가 HikariCP에서 커넥션을 빌리려고 기본값 30초(`connection-timeout`)를 기다림. 이런 요청이 쌓이면 톰캣 스레드가 모두 묶여 DB와 무관한 요청까지 처리할 스레드가 없어짐
+- **판단**: 너무 짧으면 잠깐 끊겼다 바로 복구되는 상황에도 실패하고, 너무 길면 스레드를 오래 잡음. 그래서 "1초 이상이되 길지 않게" 3초로 설정
+- **해결**: `spring.datasource.hikari.connection-timeout=3000`
+- **확인**: MySQL을 멈춘 뒤 `time curl`로 30초가 아닌 3.237초 만에 500이 오는 것을 확인
+- **한계**: 3초는 측정이 아닌 가설값. 운영이라면 평소 커넥션 대기 시간을 측정해 정해야 함. DB와 무관한 요청이 덜 막히는지는 동시 요청 실험으로 아직 확인하지 않음
+
+### 첨부파일 Content-Type이 브라우저 요청에 따라 바뀌던 문제
+- **문제**: 진짜 PNG 파일(`file` 명령으로 확인)을 화면에 띄우면 응답의 `Content-Type`이 `image/avif`. curl로 `Accept`만 바꿔 보내자 `image/webp`, `*/*`이면 `application/json`이 옴(바이트는 PNG 그대로)
+- **처음 가설**: "파일 내용이 실제로는 AVIF일 것" → `file` 명령으로 PNG임을 확인해 기각. "Spring이 저장 파일 확장자로 정한다" → 확장자가 png인데 avif가 나와서 기각
+- **원인**: 컨트롤러가 `Content-Type`을 정하지 않아 콘텐츠 협상이 일어남. `Resource`를 쓰는 변환기는 모든 형식을 쓸 수 있다고 응답하므로, 브라우저가 보낸 `Accept`의 첫 형식이 그대로 선택됨
+- **테스트가 못 잡은 이유**: 아무도 `Accept`를 바꿔 요청해 보지 않았음
+- **해결**: 저장 파일 이름의 확장자로 서버가 직접 정함(`MediaTypeFactory`, 모르면 `application/octet-stream`). `Resource.getFilename()` 대신 DB의 저장 파일 이름을 쓴 이유는 S3의 스트림 기반 `Resource`에는 파일 이름이 없기 때문
+- **확인**: `Accept: image/avif`로 요청해도 `image/png`, 모르는 확장자는 브라우저가 무엇이라고 보내든 `application/octet-stream`인지 검사하는 테스트. 실제로도 curl로 `Accept`를 바꿔 같은 응답이 오는 것을 확인
+
+### 첨부파일 저장에 실패하면 게시글만 남던 문제 (반쪽 저장)
+- **문제**: 업로드 폴더의 권한 문제로 파일 저장이 실패했는데, 사용자는 에러 화면을 봤지만 첨부 없는 게시글이 DB에 남아 있었음. 다시 쓰면 같은 글이 두 개가 됨
+- **처음 가설**: "권한 문제라면 403이 뜰 것", "게시글은 먼저 저장되니 남고 파일만 안 될 것". 403은 요청한 사용자의 권한 문제에 쓰는 응답이고, 이번에는 서버 프로세스의 폴더 쓰기 권한 문제라 500이 맞았음. 두 번째 예측은 맞았음
+- **원인 찾기**: 로그에는 처음에 `FileNotFoundException`(폴더 없음)만 보여 진짜 원인이 가려져 있었음. 폴더 생성을 `Files.createDirectories`로 바꾸자 `AccessDeniedException`이 드러남 → 폴더 주인이 root, 앱은 `app` 사용자로 실행 중이었음(Dockerfile에서 폴더 생성과 소유권 지정으로 해결)
+- **반쪽 저장의 원인**: 게시글 저장이 먼저 커밋되고, 파일과 첨부 정보 저장은 그 트랜잭션 밖에서 이뤄짐
+- **판단**: 순서를 바꿔도 반쪽 저장은 모양만 바뀜(파일만 남거나, 파일은 있는데 첨부 정보가 없거나). DB와 파일 저장소는 한 트랜잭션으로 묶을 수 없으므로 "어떤 반쪽을 남길 것인가"로 질문을 바꿈. 사용자에게 보이지 않는 고아 파일이 덜 나쁜 쪽
+- **해결**:
+  1. 파일을 먼저 저장소에 올림(트랜잭션 밖. 느린 업로드가 DB 커넥션을 붙잡지 않게)
+  2. 게시글과 첨부 정보를 한 트랜잭션으로 저장(`PostService.saveWithFiles`)
+  3. 실패하면 올린 파일을 삭제(보상). 삭제마저 실패하면 `[고아 파일]` ERROR 로그로 남김
+  - `FileStore.delete`의 약속: 없는 파일을 지워도 예외 없이 넘어감(보상이 두 번 불려도 안전)
+- **확인**: 첨부 정보 저장이 실패하도록 만든 테스트(`@MockitoBean`, 테스트 트랜잭션 없음)로 게시글 수와 저장소의 파일 수가 그대로인지 검사. 근본 원인 메시지까지 확인해 의도한 경로를 지났는지 검증하고, 보상 삭제 줄을 지우면 테스트가 실패하는 것을 확인
+
+### 저장소에 파일이 없을 때 500이 나던 문제
+- **문제**: 첨부 정보는 DB에 있는데 저장소에 파일이 없으면(깨진 참조) 이미지가 깨지고 500. 없는 첨부 번호로 요청해도 500
+- **원인**: 저장소마다 "없음"을 알리는 예외가 다름(디스크는 응답을 쓰는 도중 `FileNotFoundException`, S3는 `NoSuchKeyException`). 컨트롤러가 각각 잡으면 컨트롤러가 모든 저장소를 알게 됨. 없는 첨부 번호는 리포지토리가 `EmptyResultDataAccessException`을 던짐
+- **해결**:
+  - `StoredFileNotFoundException`을 `FileStore`의 약속(`@throws`)으로 정하고, 각 구현이 자기 예외를 이 예외로 바꿔 던짐(원인 예외는 함께 보존). 디스크는 응답 전에 파일 존재를 직접 확인
+  - 첨부 조회는 `Optional`로 바꾸고 없으면 `PostFileNotFoundException`
+  - 둘 다 404로 응답하되 로그 레벨을 다르게: 첨부 정보가 없으면 WARN(잘못된 주소 요청일 수 있음), 정보는 있는데 파일이 없으면 ERROR(우리 데이터가 어긋남). 하나로 합치면 ERROR 로그가 잘못된 요청으로 가득 차 진짜 불일치가 묻힘
+- **확인**: 두 경우 각각 404 테스트. 고친 코드를 되돌리면 실패하는 것을 확인. 실제 S3 모드에서도 404와 로그 레벨을 확인
+
+## 알려진 한계와 다음 할 일
+
+- **업로드 파일 내용 검증 없음**: 서버가 확장자(이름)를 믿음. 이름만 `.png`인 HTML 파일이 화면에 그대로 뜰 수 있어(저장형 XSS 위험), 파일 앞부분 바이트로 실제 형식을 확인하고 허용한 이미지만 받는 처리가 필요
+- **한글 파일 이름 다운로드**: macOS에서 올린 파일 이름은 자모가 분리된 형태(NFD)로 내려가 윈도우에서 깨져 보일 수 있음
+- **S3 모드의 `Content-Length` 없음**: 스트림으로 내려보내서 길이를 미리 알지 못함. 큰 파일을 받을 때 진행률이 표시되지 않음
+- **저장소 모드 전환**: 디스크와 S3를 바꾸면 기존 첨부는 옮기기 전까지 보이지 않음(위의 `sync`로 이전)
+- **고아 파일 정리 없음**: 보상 삭제마저 실패한 파일은 로그로만 추적
+- **세션 저장소(Redis) 단일 장애 지점**
+- **S3 설정은 LocalStack 전용**: 실제 AWS에서는 테스트용 자격 증명 대신 SDK 기본 자격 증명 체인을 써야 함
+- **이미지를 레지스트리에 올리지 않음**: CI는 빌드 가능 여부까지만 검사. 배포(CD)는 이 프로젝트의 범위 밖
+- **LocalStack(S3) 자동 테스트 없음**: S3 모드는 수동으로 확인. 토큰이 있을 때만 도는 테스트(`@EnabledIfEnvironmentVariable`)로 추가할 수 있음
+- **트래픽이 커지면**: 지금은 업로드 바이트가 앱 서버를 거침. 대용량 업로드가 많아지면 앱 서버 스레드를 오래 잡으므로, 짧게 유효한 업로드 주소(presigned URL)로 브라우저가 S3에 직접 올리고, 다운로드는 CDN이나 짧게 유효한 주소로 내려주는 구조로 바꿀 것
 
 ## 설계 문서
 - 데이터베이스 논리적 모델링 설계 결정사항 [docs/design.md](./docs/design.md) 참고
